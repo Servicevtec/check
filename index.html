@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบซ่อม VTECCOMPUTER</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg: #f5f7fa;
+  --surf: #ffffff;
+  --surf2: #f0f4f8;
+  --border: #e2e8f0;
+  --border2: #cbd5e1;
+  --text: #1a2332;
+  --text2: #4a5568;
+  --text3: #94a3b8;
+  --blue: #2563eb;
+  --blue-l: #dbeafe;
+  --blue-d: #1d4ed8;
+  --green: #16a34a;
+  --green-l: #dcfce7;
+  --orange: #ea580c;
+  --orange-l: #ffedd5;
+  --red: #dc2626;
+  --red-l: #fee2e2;
+  --purple: #7c3aed;
+  --purple-l: #ede9fe;
+  --yellow: #ca8a04;
+  --yellow-l: #fef9c3;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Sarabun', sans-serif;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,.08), 0 4px 6px rgba(0,0,0,.05);
+  --radius: 10px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:var(--sans); font-size:15px; line-height:1.6; min-height:100vh; }
+
+/* ── TOPBAR ── */
+.topbar {
+  background:var(--surf);
+  border-bottom:1px solid var(--border);
+  padding:0 20px;
+  display:flex; align-items:center; justify-content:space-between;
+  height:60px;
+  position:sticky; top:0; z-index:100;
+  box-shadow:var(--shadow);
+}
+.logo { display:flex; align-items:center; gap:10px; }
+.logo-icon {
+  width:36px; height:36px; border-radius:9px;
+  background:var(--blue); display:flex; align-items:center; justify-content:center;
+  font-size:18px;
+}
+.logo-text { font-weight:700; font-size:16px; color:var(--text); }
+.logo-sub { font-size:11px; color:var(--text3); font-family:var(--mono); }
+.nav-tabs { display:flex; gap:4px; }
+.nav-tab {
+  padding:7px 16px; border-radius:7px; border:none;
+  font-family:var(--sans); font-size:14px; font-weight:500;
+  cursor:pointer; transition:all .15s; background:transparent; color:var(--text2);
+}
+.nav-tab:hover { background:var(--surf2); }
+.nav-tab.active { background:var(--blue-l); color:var(--blue); }
+
+/* ── PAGES ── */
+.page { display:none; padding:24px 20px; max-width:960px; margin:0 auto; }
+.page.active { display:block; animation:fadeUp .25s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── PAGE HEADER ── */
+.page-header { margin-bottom:24px; }
+.page-title { font-size:22px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.page-sub { font-size:14px; color:var(--text3); }
+
+/* ── CARD ── */
+.card {
+  background:var(--surf); border:1px solid var(--border);
+  border-radius:var(--radius); padding:24px;
+  box-shadow:var(--shadow); margin-bottom:16px;
+}
+.card-title { font-size:15px; font-weight:600; color:var(--text); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.card-title span { font-size:18px; }
+
+/* ── FORM ── */
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.form-group { display:flex; flex-direction:column; gap:6px; }
+.form-group.full { grid-column:1/-1; }
+label { font-size:13px; font-weight:600; color:var(--text2); }
+label .req { color:var(--red); margin-left:2px; }
+input, select, textarea {
+  padding:10px 14px; border:1.5px solid var(--border);
+  border-radius:8px; font-family:var(--sans); font-size:14px;
+  color:var(--text); background:var(--surf);
+  transition:border-color .15s, box-shadow .15s; outline:none;
+}
+input:focus, select:focus, textarea:focus {
+  border-color:var(--blue); box-shadow:0 0 0 3px rgba(37,99,235,.1);
+}
+textarea { resize:vertical; min-height:90px; }
+.input-hint { font-size:12px; color:var(--text3); }
+
+/* ── FILE UPLOAD ── */
+.file-drop {
+  border:2px dashed var(--border2); border-radius:8px;
+  padding:20px; text-align:center; cursor:pointer;
+  transition:all .15s; background:var(--surf2);
+}
+.file-drop:hover { border-color:var(--blue); background:var(--blue-l); }
+.file-drop-icon { font-size:28px; margin-bottom:6px; }
+.file-drop-text { font-size:13px; color:var(--text2); }
+.file-drop-sub { font-size:12px; color:var(--text3); margin-top:2px; }
+#file-preview { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.file-thumb {
+  width:64px; height:64px; border-radius:6px; object-fit:cover;
+  border:1.5px solid var(--border);
+}
+
+/* ── BUTTONS ── */
+.btn {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:10px 20px; border-radius:8px; border:none;
+  font-family:var(--sans); font-size:14px; font-weight:600;
+  cursor:pointer; transition:all .15s;
+}
+.btn-primary { background:var(--blue); color:#fff; }
+.btn-primary:hover { background:var(--blue-d); box-shadow:0 4px 12px rgba(37,99,235,.3); }
+.btn-secondary { background:var(--surf2); color:var(--text); border:1.5px solid var(--border); }
+.btn-secondary:hover { border-color:var(--border2); background:var(--border); }
+.btn-success { background:var(--green); color:#fff; }
+.btn-danger { background:var(--red); color:#fff; font-size:12px; padding:6px 12px; }
+.btn-sm { padding:6px 14px; font-size:13px; }
+.btn-full { width:100%; justify-content:center; }
+.btn-group { display:flex; gap:10px; margin-top:20px; }
+
+/* ── STATUS BADGE ── */
+.badge {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:3px 10px; border-radius:20px;
+  font-size:12px; font-weight:600; white-space:nowrap;
+}
+.badge-dot { width:6px; height:6px; border-radius:50%; }
+.badge-new { background:var(--blue-l); color:var(--blue); }
+.badge-new .badge-dot { background:var(--blue); }
+.badge-check { background:var(--yellow-l); color:var(--yellow); }
+.badge-check .badge-dot { background:var(--yellow); }
+.badge-wait { background:var(--orange-l); color:var(--orange); }
+.badge-wait .badge-dot { background:var(--orange); }
+.badge-fix { background:var(--purple-l); color:var(--purple); }
+.badge-fix .badge-dot { background:var(--purple); }
+.badge-done { background:var(--green-l); color:var(--green); }
+.badge-done .badge-dot { background:var(--green); }
+.badge-pickup { background:#f1f5f9; color:var(--text2); }
+.badge-pickup .badge-dot { background:var(--text3); }
+
+/* ── TICKET RESULT ── */
+.ticket-result {
+  display:none; background:linear-gradient(135deg,var(--blue-l),#e0f2fe);
+  border:2px solid var(--blue); border-radius:var(--radius);
+  padding:28px; text-align:center; margin-top:20px;
+}
+.ticket-result.show { display:block; animation:fadeUp .3s ease; }
+.ticket-number {
+  font-family:var(--mono); font-size:36px; font-weight:600;
+  color:var(--blue); letter-spacing:4px; margin:8px 0;
+}
+.ticket-label { font-size:13px; color:var(--text2); }
+.ticket-info { font-size:14px; color:var(--text2); margin-top:12px; }
+
+/* ── CHECK STATUS ── */
+.check-box {
+  display:flex; gap:10px; align-items:flex-start;
+  background:var(--surf2); border:1.5px solid var(--border);
+  border-radius:var(--radius); padding:16px;
+}
+.check-box input { flex:1; }
+.status-result { display:none; margin-top:16px; }
+.status-result.show { display:block; animation:fadeUp .25s ease; }
+.status-card {
+  border:1.5px solid var(--border); border-radius:var(--radius);
+  overflow:hidden;
+}
+.status-header {
+  padding:16px 20px; background:var(--surf2);
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;
+}
+.status-body { padding:20px; }
+.status-row { display:flex; gap:8px; margin-bottom:10px; font-size:14px; }
+.status-row-label { color:var(--text3); min-width:110px; flex-shrink:0; }
+.status-row-val { color:var(--text); font-weight:500; }
+
+/* ── TIMELINE ── */
+.timeline { margin-top:16px; }
+.timeline-item { display:flex; gap:14px; padding-bottom:16px; position:relative; }
+.timeline-item:last-child { padding-bottom:0; }
+.timeline-item::before {
+  content:''; position:absolute; left:15px; top:28px; bottom:0;
+  width:2px; background:var(--border);
+}
+.timeline-item:last-child::before { display:none; }
+.tl-dot {
+  width:32px; height:32px; border-radius:50%; border:2px solid var(--border);
+  background:var(--surf); display:flex; align-items:center; justify-content:center;
+  font-size:14px; flex-shrink:0; z-index:1;
+}
+.tl-dot.active { border-color:var(--blue); background:var(--blue-l); }
+.tl-dot.done { border-color:var(--green); background:var(--green-l); }
+.tl-content { padding-top:4px; }
+.tl-title { font-size:14px; font-weight:600; color:var(--text); }
+.tl-sub { font-size:12px; color:var(--text3); margin-top:2px; }
+
+/* ── ADMIN TABLE ── */
+.table-wrap { overflow-x:auto; border-radius:var(--radius); border:1px solid var(--border); }
+table { width:100%; border-collapse:collapse; font-size:13px; min-width:700px; }
+th {
+  background:var(--surf2); padding:10px 14px; text-align:left;
+  font-weight:600; color:var(--text2); border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+td { padding:12px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:var(--surf2); }
+.ticket-id { font-family:var(--mono); font-size:12px; font-weight:600; color:var(--blue); }
+.device-name { font-weight:500; }
+.customer-name { color:var(--text2); }
+
+/* ── ADMIN MODAL ── */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.45);
+  backdrop-filter:blur(4px); z-index:200;
+  display:none; align-items:center; justify-content:center; padding:20px;
+}
+.modal-overlay.open { display:flex; animation:fadeIn .2s ease; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.modal {
+  background:var(--surf); border-radius:14px; width:100%; max-width:540px;
+  max-height:90vh; overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp { from{transform:translateY(20px)} to{transform:translateY(0)} }
+.modal-header {
+  padding:20px 24px 0; display:flex; align-items:center; justify-content:space-between;
+}
+.modal-title { font-size:17px; font-weight:700; }
+.modal-close {
+  width:32px; height:32px; border-radius:8px; border:none;
+  background:var(--surf2); cursor:pointer; font-size:16px;
+  display:flex; align-items:center; justify-content:center; color:var(--text2);
+}
+.modal-body { padding:20px 24px 24px; }
+.modal-row { display:flex; gap:10px; align-items:flex-start; margin-bottom:12px; font-size:14px; }
+.modal-row label { width:110px; flex-shrink:0; color:var(--text3); padding-top:2px; font-weight:400; }
+.modal-row .val { color:var(--text); font-weight:500; flex:1; }
+select.status-select {
+  padding:8px 12px; font-size:14px; border-radius:8px;
+  border:1.5px solid var(--border); width:100%;
+}
+
+/* ── STATS ROW ── */
+.stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+.stat-card {
+  background:var(--surf); border:1px solid var(--border);
+  border-radius:var(--radius); padding:16px 20px;
+  box-shadow:var(--shadow);
+}
+.stat-num { font-size:26px; font-weight:700; font-family:var(--mono); }
+.stat-label { font-size:12px; color:var(--text3); margin-top:2px; }
+.stat-blue .stat-num { color:var(--blue); }
+.stat-orange .stat-num { color:var(--orange); }
+.stat-purple .stat-num { color:var(--purple); }
+.stat-green .stat-num { color:var(--green); }
+
+/* ── NOTICE ── */
+.notice {
+  display:flex; gap:12px; align-items:flex-start;
+  padding:14px 16px; border-radius:8px; margin-bottom:16px; font-size:14px;
+}
+.notice-info { background:var(--blue-l); border:1px solid #bfdbfe; color:#1e40af; }
+.notice-success { background:var(--green-l); border:1px solid #bbf7d0; color:#166534; }
+.notice-icon { font-size:18px; flex-shrink:0; margin-top:1px; }
+
+/* ── RECEIPT ── */
+.receipt {
+  display:none; background:var(--surf); border:1px solid var(--border);
+  border-radius:var(--radius); padding:24px; margin-top:16px;
+}
+.receipt.show { display:block; }
+.receipt-header { text-align:center; border-bottom:1px dashed var(--border2); padding-bottom:16px; margin-bottom:16px; }
+.receipt-title { font-size:18px; font-weight:700; }
+.receipt-sub { font-size:13px; color:var(--text3); }
+.receipt-row { display:flex; justify-content:space-between; font-size:14px; margin-bottom:8px; }
+.receipt-total { border-top:2px solid var(--text); padding-top:10px; margin-top:10px; font-weight:700; font-size:16px; }
+
+/* SEARCH BAR */
+.search-bar {
+  display:flex; gap:10px; margin-bottom:16px;
+}
+.search-bar input { flex:1; }
+
+/* FILTER TABS */
+.filter-tabs { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+.filter-tab {
+  padding:5px 14px; border-radius:20px; border:1.5px solid var(--border);
+  font-size:12px; font-weight:600; cursor:pointer; transition:all .15s;
+  background:var(--surf); color:var(--text2);
+}
+.filter-tab:hover { border-color:var(--border2); }
+.filter-tab.active { background:var(--blue); color:#fff; border-color:var(--blue); }
+
+/* TOAST */
+.toast {
+  position:fixed; bottom:24px; right:24px;
+  background:#1a2332; color:#fff;
+  padding:12px 20px; border-radius:10px;
+  font-size:14px; font-weight:500;
+  box-shadow:var(--shadow-lg);
+  transform:translateY(80px); opacity:0;
+  transition:all .3s ease; z-index:300;
+}
+.toast.show { transform:translateY(0); opacity:1; }
+
+/* EMAIL PREVIEW */
+.email-box {
+  background:var(--surf2); border:1px solid var(--border);
+  border-radius:8px; padding:14px 16px; font-size:13px;
+  color:var(--text2); margin-top:10px; line-height:1.8;
+}
+
+/* RESPONSIVE */
+@media(max-width:640px) {
+  .form-grid { grid-template-columns:1fr; }
+  .stats-row { grid-template-columns:1fr 1fr; }
+  .nav-tabs { display:none; }
+  .topbar { padding:0 14px; }
+  .page { padding:16px 14px; }
+}
+/* ── EMAILJS SETTINGS ── */
+.settings-bar {
+  background: linear-gradient(135deg, #1e3a5f, #2563eb);
+  padding: 12px 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-wrap: wrap;
+}
+.settings-bar-text { font-size: 13px; color: rgba(255,255,255,.9); display: flex; align-items: center; gap: 8px; }
+.btn-settings {
+  padding: 6px 14px; border-radius: 7px; border: 1.5px solid rgba(255,255,255,.4);
+  background: rgba(255,255,255,.12); color: #fff;
+  font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all .15s; white-space: nowrap;
+}
+.btn-settings:hover { background: rgba(255,255,255,.22); }
+.settings-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.settings-dot.ok { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+.settings-dot.warn { background: #fbbf24; box-shadow: 0 0 6px #fbbf24; animation: blink 1.2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.settings-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5);
+  backdrop-filter: blur(4px); z-index: 300;
+  display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.settings-modal-overlay.open { display: flex; animation: fadeIn .2s ease; }
+.settings-modal {
+  background: var(--surf); border-radius: 14px;
+  width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+.settings-modal-head {
+  padding: 20px 24px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.settings-modal-body { padding: 16px 24px 28px; }
+.settings-step {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 12px; border-radius: 9px;
+  background: var(--surf2); border: 1px solid var(--border);
+  margin-bottom: 10px; font-size: 13px;
+}
+.step-num {
+  width: 24px; height: 24px; border-radius: 50%; background: var(--blue);
+  color: #fff; font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.settings-step a { color: var(--blue); font-weight: 600; }
+.settings-input-group { margin-bottom: 14px; }
+.settings-input-group label {
+  display: block; font-size: 13px; font-weight: 600; color: var(--text2);
+  margin-bottom: 5px;
+}
+.settings-input-group input {
+  width: 100%; padding: 9px 12px; border: 1.5px solid var(--border);
+  border-radius: 8px; font-family: var(--mono); font-size: 13px;
+  color: var(--text); outline: none; transition: border-color .15s;
+}
+.settings-input-group input:focus { border-color: var(--blue); }
+.settings-input-group .hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.test-result {
+  padding: 10px 14px; border-radius: 8px; font-size: 13px;
+  margin-top: 10px; display: none;
+}
+.test-result.ok { background: var(--green-l); color: var(--green); border: 1px solid #86efac; }
+.test-result.err { background: var(--red-l); color: var(--red); border: 1px solid #fca5a5; }
+.test-result.show { display: block; }
+
+@media print {
+  body * { visibility: hidden !important; }
+  #print-jobcard, #print-jobcard * { visibility: visible !important; }
+  #print-jobcard {
+    position: fixed !important;
+    top: 0; left: 0; width: 100%; height: auto;
+    background: white; z-index: 99999; padding: 20px;
+  }
+}
+
+/* ── PIN LOCK ── */
+.pin-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(15,23,42,.85); backdrop-filter:blur(6px);
+  z-index:9999; align-items:center; justify-content:center;
+}
+.pin-overlay.open { display:flex; }
+.pin-box {
+  background:var(--surf); border-radius:16px; padding:36px 32px;
+  width:320px; text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.pin-icon { font-size:40px; margin-bottom:12px; }
+.pin-title { font-size:18px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.pin-sub { font-size:13px; color:var(--text3); margin-bottom:24px; }
+.pin-dots { display:flex; justify-content:center; gap:12px; margin-bottom:20px; }
+.pin-dot { width:14px; height:14px; border-radius:50%; border:2px solid var(--border2); transition:.2s; }
+.pin-dot.filled { background:var(--blue); border-color:var(--blue); }
+.pin-pad { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.pin-btn {
+  height:56px; border-radius:12px; border:1.5px solid var(--border);
+  background:var(--surf2); font-size:20px; font-weight:600; color:var(--text);
+  cursor:pointer; transition:.15s;
+}
+.pin-btn:hover { background:var(--blue-l); border-color:var(--blue); color:var(--blue); }
+.pin-btn:active { transform:scale(.95); }
+.pin-btn.del { font-size:16px; color:var(--text3); }
+.pin-btn.clr { font-size:13px; color:var(--red); }
+.pin-error { color:var(--red); font-size:13px; margin-top:12px; min-height:20px; }
+
+@keyframes shake {
+  0%,100% { transform:translateX(0); }
+  20%,60% { transform:translateX(-8px); }
+  40%,80% { transform:translateX(8px); }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">🔧</div>
+    <div>
+      <div class="logo-text">ระบบซ่อม VTECCOMPUTER</div>
+      <div class="logo-sub">VTECCOMPUTER SERVICE</div>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('claim')">📝 แจ้งเคลม</button>
+    <button class="nav-tab" onclick="showPage('check')">🔍 เช็คสถานะ</button>
+    <button class="nav-tab" onclick="showPage('admin')">⚙️ Admin</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- EMAILJS SETTINGS BAR -->
+<div class="settings-bar" id="settings-bar">
+  <div class="settings-bar-text">
+    <div class="settings-dot warn" id="settings-dot"></div>
+    <span id="settings-status-text">⚙️ ยังไม่ได้ตั้งค่า EmailJS — Email จะยังส่งไม่ได้</span>
+  </div>
+  <button class="btn-settings" onclick="openSettings()">🔧 ตั้งค่า EmailJS</button>
+</div>
+
+<!-- EMAILJS SETTINGS MODAL -->
+<div class="settings-modal-overlay" id="settings-modal" onclick="closeSettingsModal(event)">
+  <div class="settings-modal">
+    <div class="settings-modal-head">
+      <div style="font-size:17px;font-weight:700">⚙️ ตั้งค่า EmailJS</div>
+      <button class="modal-close" onclick="document.getElementById('settings-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="settings-modal-body">
+
+      <!-- Steps -->
+      <div style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px">วิธีสมัครและตั้งค่า EmailJS (ฟรี)</div>
+        <div class="settings-step">
+          <div class="step-num">1</div>
+          <div>สมัครฟรีที่ <a href="https://www.emailjs.com" target="_blank">emailjs.com</a> → เข้าเมนู <strong>Email Services</strong> → Add New Service → เลือก <strong>Gmail</strong> → Connect Account → คัดลอก <strong>Service ID</strong></div>
+        </div>
+        <div class="settings-step">
+          <div class="step-num">2</div>
+          <div>ไปที่ <strong>Email Templates</strong> → Create New Template → ตั้งชื่อ → คัดลอก <strong>Template ID</strong> (เนื้อหา Template ดูได้จากไฟล์ <code>emailjs-templates.html</code>)</div>
+        </div>
+        <div class="settings-step">
+          <div class="step-num">3</div>
+          <div>ไปที่ <strong>Account → General</strong> → คัดลอก <strong>Public Key</strong> (ใต้ API Keys)</div>
+        </div>
+      </div>
+
+      <div style="height:1px;background:var(--border);margin-bottom:16px"></div>
+
+      <!-- Inputs -->
+      <div class="settings-input-group">
+        <label>Service ID <span style="color:var(--red)">*</span></label>
+        <input type="text" id="ejs-service" placeholder="service_xxxxxxx">
+        <div class="hint">ได้จาก Email Services → ชื่อ Service ของคุณ</div>
+      </div>
+      <div class="settings-input-group">
+        <label>Template ID — แจ้งเคลม <span style="color:var(--red)">*</span></label>
+        <input type="text" id="ejs-template-claim" placeholder="template_xxxxxxx">
+        <div class="hint">Template สำหรับส่งให้ลูกค้าเมื่อแจ้งเคลมสำเร็จ</div>
+      </div>
+      <div class="settings-input-group">
+        <label>Template ID — อัปเดตสถานะ <span style="color:var(--red)">*</span></label>
+        <input type="text" id="ejs-template-update" placeholder="template_xxxxxxx">
+        <div class="hint">Template สำหรับแจ้งลูกค้าเมื่อสถานะเปลี่ยน</div>
+      </div>
+      <div class="settings-input-group">
+        <label>Public Key <span style="color:var(--red)">*</span></label>
+        <input type="password" id="ejs-pubkey" placeholder="xxxxxxxxxxxxxxxxxxxx">
+        <div class="hint">ได้จาก Account → General → API Keys → Public Key</div>
+      </div>
+      <div class="settings-input-group">
+        <label>ชื่อร้าน (แสดงใน Email)</label>
+        <input type="text" id="ejs-shopname" placeholder="ร้านซ่อมคอมพิวเตอร์ของคุณ">
+      </div>
+      <div class="settings-input-group">
+        <label>เบอร์โทรร้าน (แสดงใน Email)</label>
+        <input type="text" id="ejs-shoptel" placeholder="0X-XXX-XXXX">
+      </div>
+
+      <div id="test-result" class="test-result"></div>
+
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="btn btn-secondary" style="flex:1" onclick="testEmail()">🧪 ทดสอบส่ง Email</button>
+        <button class="btn btn-primary" style="flex:1" onclick="saveSettings()">💾 บันทึกการตั้งค่า</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 1: แจ้งเคลม
+══════════════════════════════════════ -->
+<div class="page active" id="page-claim">
+  <div class="page-header">
+    <div class="page-title">📝 แจ้งเคลม / ส่งซ่อม</div>
+    <div class="page-sub">กรอกข้อมูลให้ครบถ้วน เพื่อรับเลข Ticket สำหรับติดตามงาน</div>
+  </div>
+
+  <div class="notice notice-info">
+    <span class="notice-icon">ℹ️</span>
+    <div>หลังส่งฟอร์ม ระบบจะส่งเลข Ticket ให้ทาง Email อัตโนมัติ นำเลขนี้ไปเช็คสถานะได้ตลอด 24 ชั่วโมง</div>
+  </div>
+
+  <form id="claim-form">
+    <!-- ข้อมูลลูกค้า -->
+    <div class="card">
+      <div class="card-title"><span>👤</span> ข้อมูลลูกค้า</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>ชื่อ-นามสกุล <span class="req">*</span></label>
+          <input type="text" id="c-name" placeholder="เช่น สมชาย ใจดี" required>
+        </div>
+        <div class="form-group">
+          <label>เบอร์โทรศัพท์ <span class="req">*</span></label>
+          <input type="tel" id="c-phone" placeholder="0XX-XXX-XXXX" required>
+        </div>
+        <div class="form-group">
+          <label>Email (สำหรับรับ Ticket) <span class="req">*</span></label>
+          <input type="email" id="c-email" placeholder="example@email.com" required>
+        </div>
+        <div class="form-group">
+          <label>LINE ID (ถ้ามี)</label>
+          <input type="text" id="c-line" placeholder="@lineID">
+        </div>
+      </div>
+    </div>
+
+    <!-- ข้อมูลอุปกรณ์ -->
+    <div class="card">
+      <div class="card-title"><span>💻</span> ข้อมูลอุปกรณ์</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>ประเภทอุปกรณ์ <span class="req">*</span></label>
+          <select id="c-type" required>
+            <option value="">-- เลือกประเภท --</option>
+            <option>คอมพิวเตอร์ตั้งโต๊ะ</option>
+            <option>โน๊ตบุ๊ค</option>
+            <option>แท็บเล็ต</option>
+            <option>สมาร์ทโฟน</option>
+            <option>iPad / iPhone</option>
+            <option>อุปกรณ์เสริม / อื่นๆ</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>ยี่ห้อ / รุ่น <span class="req">*</span></label>
+          <input type="text" id="c-brand" placeholder="เช่น Dell Inspiron 15, iPhone 13" required>
+        </div>
+        <div class="form-group">
+          <label>Serial Number (ถ้ามี)</label>
+          <input type="text" id="c-serial" placeholder="S/N">
+        </div>
+        <div class="form-group">
+          <label>วันที่ต้องการรับกลับ</label>
+          <input type="date" id="c-date">
+        </div>
+        <div class="form-group full">
+          <label>อาการที่พบ / ปัญหา <span class="req">*</span></label>
+          <textarea id="c-issue" placeholder="อธิบายอาการให้ละเอียดที่สุด เช่น เปิดไม่ติด, จอดำ, เสียงดัง, ช้ามาก..." required></textarea>
+        </div>
+        <div class="form-group full">
+          <label>รูปถ่ายอุปกรณ์ / หน้าจอแสดง Error</label>
+          <div class="file-drop" onclick="document.getElementById('c-files').click()">
+            <div class="file-drop-icon">📷</div>
+            <div class="file-drop-text">คลิกเพื่อแนบรูป</div>
+            <div class="file-drop-sub">JPG, PNG ขนาดไม่เกิน 5MB ต่อไฟล์</div>
+          </div>
+          <input type="file" id="c-files" multiple accept="image/*" style="display:none" onchange="previewFiles(this)">
+          <div id="file-preview"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ข้อมูลเพิ่มเติม -->
+    <div class="card">
+      <div class="card-title"><span>📋</span> ข้อมูลเพิ่มเติม</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>ระดับความเร่งด่วน</label>
+          <select id="c-priority">
+            <option value="normal">ปกติ (3-5 วันทำการ)</option>
+            <option value="urgent">เร่งด่วน (1-2 วันทำการ)</option>
+            <option value="express">Express (ภายในวันเดียวกัน)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>วิธีรับอุปกรณ์คืน</label>
+          <select id="c-pickup">
+            <option>รับเองที่ร้าน</option>
+            <option>ส่งคืนทาง Delivery</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>หมายเหตุเพิ่มเติม</label>
+          <textarea id="c-note" placeholder="ข้อมูลอื่นๆ ที่อยากให้ช่างทราบ..." style="min-height:60px"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button type="submit" class="btn btn-primary">
+        ✅ ส่งแจ้งเคลม
+      </button>
+      <button type="button" class="btn btn-secondary" onclick="resetForm()">
+        🔄 ล้างข้อมูล
+      </button>
+    </div>
+  </form>
+
+  <!-- ผลลัพธ์ Ticket -->
+  <div class="ticket-result" id="ticket-result">
+    <div style="font-size:32px">🎉</div>
+    <div class="ticket-label">เลข Ticket ของคุณ</div>
+    <div class="ticket-number" id="ticket-number">—</div>
+    <div class="ticket-info">
+      เราได้รับแจ้งเคลมของคุณแล้ว กรุณาเก็บเลข Ticket นี้ไว้<br>
+      ระบบส่ง Email ยืนยันไปที่ <strong id="ticket-email">—</strong> แล้ว
+    </div>
+    <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-secondary btn-sm" onclick="showPage('check');document.getElementById('check-input').value=document.getElementById('ticket-number').textContent;checkStatus()">
+        🔍 เช็คสถานะ
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="printTicket()">
+        🖨️ พิมพ์ใบรับอุปกรณ์
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 2: เช็คสถานะ
+══════════════════════════════════════ -->
+<div class="page" id="page-check">
+  <div class="page-header">
+    <div class="page-title">🔍 ติดตามสถานะงานซ่อม</div>
+    <div class="page-sub">กรอกเลข Ticket ที่ได้รับเพื่อตรวจสอบความคืบหน้า</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span>🎫</span> ค้นหาด้วยเลข Ticket</div>
+    <div class="check-box">
+      <input type="text" id="check-input" placeholder="เช่น 69-0001" style="font-family:var(--mono);font-size:16px;letter-spacing:2px">
+      <button class="btn btn-primary" onclick="checkStatus()">ค้นหา</button>
+    </div>
+    <div class="input-hint" style="margin-top:8px">หรือค้นหาด้วยเบอร์โทรศัพท์ที่ลงทะเบียนไว้</div>
+  </div>
+
+  <div class="status-result" id="status-result">
+    <div class="status-card">
+      <div class="status-header">
+        <div>
+          <div style="font-size:13px;color:var(--text3);margin-bottom:4px">เลข Ticket</div>
+          <div class="ticket-id" style="font-size:18px" id="sr-ticket">—</div>
+        </div>
+        <div id="sr-badge">—</div>
+      </div>
+      <div class="status-body">
+        <div class="status-row">
+          <span class="status-row-label">👤 ชื่อลูกค้า</span>
+          <span class="status-row-val" id="sr-name">—</span>
+        </div>
+        <div class="status-row">
+          <span class="status-row-label">💻 อุปกรณ์</span>
+          <span class="status-row-val" id="sr-device">—</span>
+        </div>
+        <div class="status-row">
+          <span class="status-row-label">🔧 อาการ</span>
+          <span class="status-row-val" id="sr-issue">—</span>
+        </div>
+        <div class="status-row">
+          <span class="status-row-label">📅 วันที่รับ</span>
+          <span class="status-row-val" id="sr-date">—</span>
+        </div>
+        <div class="status-row" id="sr-price-row" style="display:none">
+          <span class="status-row-label">💰 ค่าซ่อม</span>
+          <span class="status-row-val" id="sr-price" style="color:var(--green);font-weight:700">—</span>
+        </div>
+        <div class="status-row" id="sr-note-row" style="display:none">
+          <span class="status-row-label">📝 หมายเหตุ</span>
+          <span class="status-row-val" id="sr-note">—</span>
+        </div>
+
+        <!-- Timeline -->
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+          <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:14px">ความคืบหน้า</div>
+          <div class="timeline" id="sr-timeline"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ใบเสร็จ -->
+    <div class="receipt" id="receipt-box">
+      <div class="receipt-header">
+        <div class="receipt-title">🔧 ใบเสร็จรับเงิน</div>
+        <div class="receipt-sub">ร้านซ่อมคอมพิวเตอร์</div>
+      </div>
+      <div class="receipt-row"><span>เลข Ticket</span><span id="r-ticket" style="font-family:var(--mono)">—</span></div>
+      <div class="receipt-row"><span>ชื่อลูกค้า</span><span id="r-name">—</span></div>
+      <div class="receipt-row"><span>อุปกรณ์</span><span id="r-device">—</span></div>
+      <div class="receipt-row"><span>รายการซ่อม</span><span id="r-issue">—</span></div>
+      <div class="receipt-row"><span>วันที่</span><span id="r-date">—</span></div>
+      <div class="receipt-row receipt-total"><span>รวมทั้งสิ้น</span><span id="r-price" style="color:var(--green)">—</span></div>
+      <div style="margin-top:16px;display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨️ พิมพ์ใบเสร็จ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 3: Admin
+══════════════════════════════════════ -->
+<div class="page" id="page-admin">
+  <div class="page-header">
+    <div class="page-title">⚙️ Admin — จัดการงานซ่อม</div>
+    <div class="page-sub">อัปเดตสถานะ ตั้งราคา และติดตามงานทั้งหมด</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="admin-stats"></div>
+
+  <!-- Search & Filter -->
+  <div class="search-bar" style="display:flex;gap:8px">
+    <input type="text" id="admin-search" placeholder="🔍 ค้นหาชื่อ, Ticket, อุปกรณ์..." oninput="renderAdmin()" style="flex:1">
+    <button class="btn btn-secondary" onclick="exportExcel()" style="white-space:nowrap;font-size:13px">📊 Export Excel</button>
+    <button class="btn btn-secondary" onclick="openChangePIN()" style="white-space:nowrap;font-size:13px;background:#fef3c7;color:#92400e;border-color:#fcd34d">🔑 เปลี่ยน PIN</button>
+  </div>
+  <div class="filter-tabs" id="filter-tabs">
+    <button class="filter-tab active" data-filter="all" onclick="setFilter('all')">ทั้งหมด</button>
+    <button class="filter-tab" data-filter="new" onclick="setFilter('new')">🔵 รับแล้ว</button>
+    <button class="filter-tab" data-filter="check" onclick="setFilter('check')">🟡 กำลังตรวจ</button>
+    <button class="filter-tab" data-filter="wait" onclick="setFilter('wait')">🟠 รอชิ้นส่วน</button>
+    <button class="filter-tab" data-filter="fix" onclick="setFilter('fix')">🟣 กำลังซ่อม</button>
+    <button class="filter-tab" data-filter="done" onclick="setFilter('done')">🟢 เสร็จแล้ว</button>
+    <button class="filter-tab" data-filter="pickup" onclick="setFilter('pickup')">⚫ รับกลับแล้ว</button>
+  </div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="table-wrap">
+      <table id="admin-table">
+        <thead>
+          <tr>
+            <th>Ticket</th>
+            <th>วันที่รับ</th>
+            <th>ลูกค้า</th>
+            <th>อุปกรณ์</th>
+            <th>อาการ</th>
+            <th>สถานะ</th>
+            <th>ราคา</th>
+            <th>จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="admin-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ADMIN MODAL
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="admin-modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">อัปเดตงานซ่อม</div>
+      <button class="modal-close" onclick="document.getElementById('admin-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-row"><label>Ticket</label><span class="val" id="m-ticket" style="font-family:var(--mono);color:var(--blue)">—</span></div>
+      <div class="modal-row"><label>ลูกค้า</label><span class="val" id="m-name">—</span></div>
+      <div class="modal-row"><label>เบอร์</label><span class="val" id="m-phone">—</span></div>
+      <div class="modal-row"><label>Email</label><span class="val" id="m-email">—</span></div>
+      <div class="modal-row"><label>อุปกรณ์</label><span class="val" id="m-device">—</span></div>
+      <div class="modal-row"><label>อาการ</label><span class="val" id="m-issue">—</span></div>
+      <div class="modal-row"><label>📝 หมายเหตุลูกค้า</label><span class="val" id="m-customer-note" style="color:var(--orange);white-space:pre-wrap">—</span></div>
+      <div class="modal-row"><label>⚡ ความเร่งด่วน</label><span class="val" id="m-priority">—</span></div>
+      <div class="modal-row"><label>📦 รับอุปกรณ์คืน</label><span class="val" id="m-pickup">—</span></div>
+      </div>
+      <div style="height:1px;background:var(--border);margin:14px 0"></div>
+      <div class="form-group" style="margin-bottom:14px">
+        <label>สถานะงาน</label>
+        <select class="status-select" id="m-status" onchange="updateStatusColor()">
+          <option value="new">🔵 รับแล้ว — รอตรวจ</option>
+          <option value="check">🟡 กำลังตรวจสอบ</option>
+          <option value="wait">🟠 รอชิ้นส่วน / อะไหล่</option>
+          <option value="fix">🟣 กำลังดำเนินการซ่อม</option>
+          <option value="done">🟢 ซ่อมเสร็จแล้ว — รอรับ</option>
+          <option value="pickup">⚫ ลูกค้ารับอุปกรณ์คืนแล้ว</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:14px">
+        <label>ค่าซ่อม (บาท)</label>
+        <input type="number" id="m-price" placeholder="0" min="0">
+      </div>
+      <div class="form-group" style="margin-bottom:14px">
+        <label>หมายเหตุช่าง</label>
+        <textarea id="m-note" style="min-height:70px" placeholder="รายละเอียดการซ่อม, อะไหล่ที่ใช้..."></textarea>
+      </div>
+      <!-- Email preview -->
+      <div style="font-size:12px;color:var(--text3);margin-bottom:6px;font-weight:600">📧 ตัวอย่าง Email ที่จะส่งให้ลูกค้า</div>
+      <div class="email-box" id="email-preview">—</div>
+      <div class="btn-group" style="margin-top:16px">
+        <button class="btn btn-primary btn-full" onclick="saveUpdate()">💾 บันทึกและแจ้งลูกค้า</button>
+        <button class="btn btn-full" style="background:#f0fdf4;color:#16a34a;border:1px solid #86efac;margin-top:8px" onclick="printJobCard()">🖨️ พิมพ์ใบรับซ่อม</button>
+        <button class="btn btn-full" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;margin-top:8px" onclick="confirmDelete(currentEditId)">🗑️ ลบงานนี้</button>
+        <button class="btn btn-full" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;margin-top:8px" onclick="confirmDelete(currentEditId)">🗑️ ลบงานนี้</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+//  CONFIG — ใส่ URL ของ Google Apps Script ที่ Deploy แล้วตรงนี้
+// ══════════════════════════════════════════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyrrGpCmuJgSOCFtz6imfQNTTMcG6m_v5sn-e_70eq0Ubs6NIIfl3607WKu3gZ6gUO5/exec';
+//  ตัวอย่าง: 'https://script.google.com/macros/s/AKfycb.../exec'
+
+// ══════════════════════════════════════════════════════════════════
+//  EMAILJS CONFIG (เก็บใน localStorage เหมือนเดิม — ไม่เปลี่ยน)
+// ══════════════════════════════════════════════════════════════════
+const EJS_KEY = 'emailjs_config_v1';
+
+function loadEjsConfig() {
+  try { return JSON.parse(localStorage.getItem(EJS_KEY)) || {}; }
+  catch(e) { return {}; }
+}
+function saveEjsConfig(cfg) { localStorage.setItem(EJS_KEY, JSON.stringify(cfg)); }
+function isEjsReady() {
+  const c = loadEjsConfig();
+  return !!(c.serviceId && c.templateClaim && c.templateUpdate && c.publicKey);
+}
+function initEjs() {
+  const c = loadEjsConfig();
+  if (c.publicKey) { try { emailjs.init({ publicKey: c.publicKey }); } catch(e){} }
+  updateSettingsBar();
+}
+function updateSettingsBar() {
+  const ready = isEjsReady();
+  const dot = document.getElementById('settings-dot');
+  const txt = document.getElementById('settings-status-text');
+  if (ready) {
+    dot.className = 'settings-dot ok';
+    const c = loadEjsConfig();
+    txt.textContent = `✅ EmailJS พร้อมใช้งาน — ${c.shopName || 'ร้านซ่อม'}`;
+  } else {
+    dot.className = 'settings-dot warn';
+    txt.textContent = '⚙️ ยังไม่ได้ตั้งค่า EmailJS — Email จะยังส่งไม่ได้';
+  }
+}
+function openSettings() {
+  const c = loadEjsConfig();
+  document.getElementById('ejs-service').value        = c.serviceId || '';
+  document.getElementById('ejs-template-claim').value  = c.templateClaim || '';
+  document.getElementById('ejs-template-update').value = c.templateUpdate || '';
+  document.getElementById('ejs-pubkey').value          = c.publicKey || '';
+  document.getElementById('ejs-shopname').value        = c.shopName || '';
+  document.getElementById('ejs-shoptel').value         = c.shopTel || '';
+  document.getElementById('test-result').className = 'test-result';
+  document.getElementById('settings-modal').classList.add('open');
+}
+function saveSettings() {
+  const cfg = {
+    serviceId:      document.getElementById('ejs-service').value.trim(),
+    templateClaim:  document.getElementById('ejs-template-claim').value.trim(),
+    templateUpdate: document.getElementById('ejs-template-update').value.trim(),
+    publicKey:      document.getElementById('ejs-pubkey').value.trim(),
+    shopName:       document.getElementById('ejs-shopname').value.trim(),
+    shopTel:        document.getElementById('ejs-shoptel').value.trim(),
+  };
+  if (!cfg.serviceId || !cfg.templateClaim || !cfg.templateUpdate || !cfg.publicKey) {
+    showToast('⚠️ กรุณากรอกข้อมูลให้ครบ'); return;
+  }
+  saveEjsConfig(cfg);
+  try { emailjs.init({ publicKey: cfg.publicKey }); } catch(e){}
+  updateSettingsBar();
+  document.getElementById('settings-modal').classList.remove('open');
+  showToast('✅ บันทึกการตั้งค่าแล้ว');
+}
+async function testEmail() {
+  const cfg = loadEjsConfig();
+  if (!cfg.serviceId || !cfg.publicKey || !cfg.templateClaim) {
+    showToast('⚠️ กรุณาบันทึกการตั้งค่าก่อน'); return;
+  }
+  const res = document.getElementById('test-result');
+  res.className = 'test-result show'; res.textContent = '⏳ กำลังส่ง Email ทดสอบ...';
+  try {
+    await emailjs.send(cfg.serviceId, cfg.templateClaim, {
+      to_email: 'test@test.com', to_name: 'ทดสอบระบบ',
+      ticket_id:'TK-TEST', device_type:'โน๊ตบุ๊ค', device_brand:'Test Brand',
+      issue:'ทดสอบระบบ Email', date: new Date().toLocaleDateString('th-TH'),
+      priority:'ปกติ', shop_name: cfg.shopName||'ร้านซ่อม',
+      shop_tel: cfg.shopTel||'-', status_label:'รับแล้ว — รอตรวจ',
+      check_url: window.location.href,
+    });
+    res.className = 'test-result ok show';
+    res.textContent = '✅ ส่งสำเร็จ! ตรวจสอบกล่องขาเข้าของ Email ที่ตั้งใน Template ครับ';
+  } catch(err) {
+    res.className = 'test-result err show';
+    res.textContent = `❌ Error: ${err?.text||err?.message||JSON.stringify(err)}`;
+  }
+}
+function closeSettingsModal(e) {
+  if (e.target===document.getElementById('settings-modal'))
+    document.getElementById('settings-modal').classList.remove('open');
+}
+async function sendEmail(templateId, params) {
+  if (!isEjsReady()) return;
+  const c = loadEjsConfig();
+  try {
+    await emailjs.send(c.serviceId, templateId, {
+      ...params, shop_name: c.shopName||'ร้านซ่อม',
+      shop_tel: c.shopTel||'-', check_url: window.location.href,
+    });
+  } catch(e) { console.warn('EmailJS error:', e); }
+}
+const PRIORITY_MAP = { normal:'ปกติ (3-5 วัน)', urgent:'⚡ เร่งด่วน (1-2 วัน)', express:'🚀 Express (ภายในวัน)' };
+
+// ══════════════════════════════════════════════════════════════════
+//  DATA STORE — Google Sheets (แทน localStorage)
+// ══════════════════════════════════════════════════════════════════
+
+async function loadData() {
+  if (!GAS_URL) {
+    console.warn('GAS_URL ยังไม่ได้ตั้งค่า');
+    return [];
+  }
+  try {
+    const res = await fetch(`${GAS_URL}?action=getAll`);
+    const json = await res.json();
+    return json.ok ? json.data : [];
+  } catch(e) {
+    console.error('loadData error:', e);
+    return [];
+  }
+}
+
+async function saveData(claim) {
+  if (!GAS_URL) return;
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'save', claim }),
+    });
+  } catch(e) { console.error('saveData error:', e); }
+}
+
+async function updateData(ticketId, updates) {
+  if (!GAS_URL) return false;
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'update', ticketId, updates }),
+    });
+    const json = await res.json();
+    return json.ok;
+  } catch(e) {
+    console.error('updateData error:', e);
+    return false;
+  }
+}
+
+async function getOneData(id, phone) {
+  if (!GAS_URL) return null;
+  try {
+    let url = `${GAS_URL}?action=getOne`;
+    if (id)    url += `&id=${encodeURIComponent(id)}`;
+    if (phone) url += `&phone=${encodeURIComponent(phone)}`;
+    const res = await fetch(url);
+    const json = await res.json();
+    return json.ok ? json.data : null;
+  } catch(e) { return null; }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  STATUS CONFIG
+// ══════════════════════════════════════════════════════════════════
+const STATUS = {
+  new:    { label:'รับแล้ว — รอตรวจ',       cls:'badge-new',    icon:'🔵', tl:'📥', tlLabel:'รับอุปกรณ์แล้ว' },
+  check:  { label:'กำลังตรวจสอบ',           cls:'badge-check',  icon:'🟡', tl:'🔍', tlLabel:'กำลังตรวจสอบอาการ' },
+  wait:   { label:'รอชิ้นส่วน / อะไหล่',    cls:'badge-wait',   icon:'🟠', tl:'⏳', tlLabel:'รอชิ้นส่วน / อะไหล่' },
+  fix:    { label:'กำลังดำเนินการซ่อม',     cls:'badge-fix',    icon:'🟣', tl:'🔧', tlLabel:'กำลังดำเนินการซ่อม' },
+  done:   { label:'ซ่อมเสร็จแล้ว — รอรับ', cls:'badge-done',   icon:'🟢', tl:'✅', tlLabel:'ซ่อมเสร็จแล้ว รอรับ' },
+  pickup: { label:'รับอุปกรณ์คืนแล้ว',      cls:'badge-pickup', icon:'⚫', tl:'📦', tlLabel:'ลูกค้ารับอุปกรณ์คืนแล้ว' },
+};
+
+function badgeHTML(status) {
+  const s = STATUS[status] || STATUS.new;
+  return `<span class="badge ${s.cls}"><span class="badge-dot"></span>${s.label}</span>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════════════════════
+function showPage(page) {
+  if (page === 'admin' && !isAdminUnlocked()) {
+    showPinModal();
+    return;
+  }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const tabs = { claim:0, check:1, admin:2 };
+  document.querySelectorAll('.nav-tab')[tabs[page]].classList.add('active');
+  if (page === 'admin') renderAdmin();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  TICKET GENERATION
+// ══════════════════════════════════════════════════════════════════
+async function genTicket() {
+  const data = await loadData();
+  const num = (data.length + 1).toString().padStart(4, '0');
+  const now = new Date();
+  const yearTH = (now.getFullYear() + 543).toString().slice(-2);
+  return `${yearTH}-${num}`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  FILE PREVIEW
+// ══════════════════════════════════════════════════════════════════
+const IMGBB_KEY = 'baccdfca537d19e8f3505668015c2d56';
+
+function previewFiles(input) {
+  const preview = document.getElementById('file-preview');
+  preview.innerHTML = '';
+  Array.from(input.files).forEach(file => {
+    const url = URL.createObjectURL(file);
+    const img = document.createElement('img');
+    img.src = url; img.className = 'file-thumb';
+    preview.appendChild(img);
+  });
+}
+
+async function uploadToImgBB(file) {
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('key', IMGBB_KEY);
+  try {
+    const res = await fetch('https://api.imgbb.com/1/upload', {
+      method: 'POST',
+      body: formData,
+    });
+    const json = await res.json();
+    return json.success ? json.data.url : null;
+  } catch(e) {
+    console.error('ImgBB upload error:', e);
+    return null;
+  }
+}
+
+async function uploadAllImages() {
+  const input = document.getElementById('c-files');
+  const files = Array.from(input.files);
+  if (files.length === 0) return [];
+  const urls = await Promise.all(files.map(f => uploadToImgBB(f)));
+  return urls.filter(Boolean);
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  SUBMIT CLAIM
+// ══════════════════════════════════════════════════════════════════
+document.getElementById('claim-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const submitBtn = this.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = '⏳ กำลังอัปโหลดรูป...';
+
+  const imageUrls = await uploadAllImages();
+
+  submitBtn.textContent = '⏳ กำลังบันทึก...';
+  const ticket = await genTicket();
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' });
+
+  const claim = {
+    id: ticket,
+    date: dateStr,
+    dateRaw: now.toISOString(),
+    name: document.getElementById('c-name').value,
+    phone: document.getElementById('c-phone').value,
+    email: document.getElementById('c-email').value,
+    line: document.getElementById('c-line').value,
+    type: document.getElementById('c-type').value,
+    brand: document.getElementById('c-brand').value,
+    serial: document.getElementById('c-serial').value,
+    issue: document.getElementById('c-issue').value,
+    priority: document.getElementById('c-priority').value,
+    pickup: document.getElementById('c-pickup').value,
+    note: document.getElementById('c-note').value,
+    returnDate: document.getElementById('c-date').value,
+    status: 'new',
+    price: '',
+    techNote: '',
+    history: ['new'],
+    images: JSON.stringify(imageUrls),
+  };
+
+  await saveData(claim);
+
+  document.getElementById('ticket-number').textContent = ticket;
+  document.getElementById('ticket-email').textContent = claim.email;
+  document.getElementById('ticket-result').classList.add('show');
+  document.getElementById('ticket-result').scrollIntoView({ behavior:'smooth' });
+  showToast(`✅ ส่งเคลมสำเร็จ! เลข Ticket: ${ticket}`);
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = '✅ ส่งแจ้งเคลม';
+
+  // ส่ง Email ยืนยันให้ลูกค้า
+  const cfg = loadEjsConfig();
+  sendEmail(cfg.templateClaim, {
+    to_email:    claim.email,
+    to_name:     claim.name,
+    ticket_id:   claim.id,
+    device_type: claim.type,
+    device_brand:claim.brand,
+    issue:       claim.issue,
+    date:        claim.date,
+    priority:    PRIORITY_MAP[claim.priority] || claim.priority,
+    status_label:'รับแล้ว — รอตรวจ',
+    phone:       claim.phone,
+    line_id:     claim.line || '-',
+    note:        claim.note || '-',
+  });
+});
+
+function resetForm() {
+  document.getElementById('claim-form').reset();
+  document.getElementById('file-preview').innerHTML = '';
+  document.getElementById('ticket-result').classList.remove('show');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  CHECK STATUS
+// ══════════════════════════════════════════════════════════════════
+async function checkStatus() {
+  const input = document.getElementById('check-input').value.trim().toUpperCase();
+  if (!input) { showToast('⚠️ กรุณากรอกเลข Ticket'); return; }
+
+  const btn = document.querySelector('#page-check .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังค้นหา...'; }
+
+  // ตรวจว่าเป็น Ticket ID หรือเบอร์โทร
+  const isTicket = /^\d{2}-/.test(input);
+  const claim = await getOneData(
+    isTicket ? input : null,
+    isTicket ? null : document.getElementById('check-input').value.trim()
+  );
+
+  if (btn) { btn.disabled = false; btn.textContent = 'ค้นหา'; }
+
+  if (!claim) {
+    showToast('❌ ไม่พบข้อมูล Ticket นี้');
+    document.getElementById('status-result').classList.remove('show');
+    return;
+  }
+
+  document.getElementById('sr-ticket').textContent = claim.id;
+  document.getElementById('sr-badge').innerHTML = badgeHTML(claim.status);
+  document.getElementById('sr-name').textContent = claim.name;
+  document.getElementById('sr-device').textContent = `${claim.type} — ${claim.brand}`;
+  document.getElementById('sr-issue').textContent = claim.issue;
+  document.getElementById('sr-date').textContent = claim.date;
+
+  if (claim.price) {
+    document.getElementById('sr-price').textContent = `฿${Number(claim.price).toLocaleString()}`;
+    document.getElementById('sr-price-row').style.display = 'flex';
+  } else {
+    document.getElementById('sr-price-row').style.display = 'none';
+  }
+  if (claim.techNote) {
+    document.getElementById('sr-note').textContent = claim.techNote;
+    document.getElementById('sr-note-row').style.display = 'flex';
+  } else {
+    document.getElementById('sr-note-row').style.display = 'none';
+  }
+
+  // Timeline
+  const allSteps = ['new','check','wait','fix','done','pickup'];
+  const historySet = new Set(claim.history || [claim.status]);
+  const tl = document.getElementById('sr-timeline');
+  tl.innerHTML = '';
+  allSteps.forEach(step => {
+    const s = STATUS[step];
+    const isDone = historySet.has(step);
+    const isCurrent = claim.status === step;
+    const item = document.createElement('div');
+    item.className = 'timeline-item';
+    item.innerHTML = `
+      <div class="tl-dot ${isCurrent?'active':isDone?'done':''}">${s.tl}</div>
+      <div class="tl-content">
+        <div class="tl-title" style="color:${isCurrent?'var(--blue)':isDone?'var(--green)':'var(--text3)'}">${s.tlLabel}</div>
+        <div class="tl-sub">${isCurrent?'⬅️ สถานะปัจจุบัน':isDone?'ผ่านแล้ว':'รอดำเนินการ'}</div>
+      </div>`;
+    tl.appendChild(item);
+  });
+
+  // Receipt
+  if (claim.status === 'done' || claim.status === 'pickup') {
+    document.getElementById('receipt-box').classList.add('show');
+    document.getElementById('r-ticket').textContent = claim.id;
+    document.getElementById('r-name').textContent = claim.name;
+    document.getElementById('r-device').textContent = claim.brand;
+    document.getElementById('r-issue').textContent = claim.issue;
+    document.getElementById('r-date').textContent = claim.date;
+    document.getElementById('r-price').textContent = claim.price ? `฿${Number(claim.price).toLocaleString()}` : 'ยังไม่ระบุ';
+  } else {
+    document.getElementById('receipt-box').classList.remove('show');
+  }
+
+  document.getElementById('status-result').classList.add('show');
+  document.getElementById('status-result').scrollIntoView({ behavior:'smooth' });
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  ADMIN
+// ══════════════════════════════════════════════════════════════════
+let currentFilter = 'all';
+let adminCache = [];
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.filter === f);
+  });
+  renderTable(adminCache);
+}
+
+async function renderAdmin() {
+  const tbody = document.getElementById('admin-tbody');
+  tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:32px">⏳ กำลังโหลดข้อมูล...</td></tr>`;
+
+  const data = await loadData();
+  adminCache = data;
+  renderTable(data);
+}
+
+function renderTable(data) {
+  const search = document.getElementById('admin-search').value.toLowerCase();
+
+  // Stats
+  const stats = { new:0, check:0, wait:0, fix:0, done:0, pickup:0 };
+  data.forEach(c => { if (stats[c.status] !== undefined) stats[c.status]++; });
+  const inProgress = stats.new + stats.check + stats.wait + stats.fix;
+
+  document.getElementById('admin-stats').innerHTML = `
+    <div class="stat-card stat-blue"><div class="stat-num">${data.length}</div><div class="stat-label">ทั้งหมด</div></div>
+    <div class="stat-card stat-orange"><div class="stat-num">${inProgress}</div><div class="stat-label">กำลังดำเนินการ</div></div>
+    <div class="stat-card stat-green"><div class="stat-num">${stats.done}</div><div class="stat-label">เสร็จแล้วรอรับ</div></div>
+    <div class="stat-card stat-purple"><div class="stat-num">${stats.pickup}</div><div class="stat-label">รับกลับแล้ว</div></div>
+  `;
+
+  let filtered = data.filter(c => {
+    const matchFilter = currentFilter === 'all' || c.status === currentFilter;
+    const matchSearch = !search ||
+      (c.name||'').toLowerCase().includes(search) ||
+      (c.id||'').toLowerCase().includes(search) ||
+      (c.brand||'').toLowerCase().includes(search) ||
+      (c.phone||'').includes(search);
+    return matchFilter && matchSearch;
+  });
+
+  const tbody = document.getElementById('admin-tbody');
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:32px">ไม่พบข้อมูล</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = [...filtered].reverse().map(c => `
+    <tr>
+      <td><span class="ticket-id">${c.id}</span></td>
+      <td style="color:var(--text3);font-size:12px">${c.date}</td>
+      <td>
+        <div class="device-name">${c.name}</div>
+        <div style="font-size:12px;color:var(--text3)">${c.phone}</div>
+      </td>
+      <td>
+        <div class="device-name">${c.brand}</div>
+        <div style="font-size:12px;color:var(--text3)">${c.type}</div>
+      </td>
+      <td style="max-width:160px;font-size:13px;color:var(--text2)">${(c.issue||'').substring(0,50)}${(c.issue||'').length>50?'...':''}</td>
+      <td>${badgeHTML(c.status)}</td>
+      <td style="font-family:var(--mono);font-size:13px;color:var(--green)">${c.price?'฿'+Number(c.price).toLocaleString():'-'}</td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="openModal('${c.id}')">✏️ จัดการ</button>
+        <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5" onclick="confirmDelete('${c.id}')">🗑️ ลบ</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  MODAL
+// ══════════════════════════════════════════════════════════════════
+let currentEditId = null;
+
+function openModal(id) {
+  const claim = adminCache.find(c => c.id === id);
+  if (!claim) return;
+  currentEditId = id;
+
+  document.getElementById('m-ticket').textContent = claim.id;
+  document.getElementById('m-name').textContent = claim.name;
+  document.getElementById('m-phone').textContent = claim.phone;
+  document.getElementById('m-email').textContent = claim.email;
+  document.getElementById('m-device').textContent = `${claim.type} — ${claim.brand}`;
+  document.getElementById('m-issue').textContent = claim.issue;
+  document.getElementById('m-customer-note').textContent = claim.note || '-';
+  const priorityMap = { normal:'ปกติ (3-5 วันทำการ)', urgent:'⚡ เร่งด่วน (1-2 วันทำการ)', express:'🚀 Express (ภายในวันเดียวกัน)' };
+  document.getElementById('m-priority').textContent = priorityMap[claim.priority] || claim.priority || '-';
+  document.getElementById('m-pickup').textContent = claim.pickup || '-';
+  document.getElementById('m-status').value = claim.status;
+  document.getElementById('m-price').value = claim.price || '';
+  document.getElementById('m-note').value = claim.techNote || '';
+  document.getElementById('modal-title').textContent = `อัปเดต — ${claim.id}`;
+
+  updateStatusColor();
+  document.getElementById('admin-modal').classList.add('open');
+}
+
+function updateStatusColor() {
+  const val = document.getElementById('m-status').value;
+  const s = STATUS[val];
+  const name = document.getElementById('m-name').textContent;
+  const device = document.getElementById('m-device').textContent;
+  const ticket = document.getElementById('m-ticket').textContent;
+
+  document.getElementById('email-preview').innerHTML = `
+    เรียน คุณ${name}<br><br>
+    สถานะงานซ่อมของคุณอัปเดตแล้วครับ/ค่ะ<br><br>
+    📋 Ticket: <strong>${ticket}</strong><br>
+    💻 อุปกรณ์: ${device}<br>
+    📊 สถานะ: <strong>${s.icon} ${s.label}</strong><br><br>
+    🔍 ติดตามสถานะได้ที่: <span style="color:var(--blue)">ลิงก์เช็คสถานะ</span><br><br>
+    ขอบคุณที่ใช้บริการครับ/ค่ะ 🙏
+  `;
+}
+
+async function saveUpdate() {
+  const saveBtn = document.querySelector('#admin-modal .btn-primary');
+  saveBtn.disabled = true;
+  saveBtn.textContent = '⏳ กำลังบันทึก...';
+
+  const claim = adminCache.find(c => c.id === currentEditId);
+  if (!claim) return;
+
+  const newStatus = document.getElementById('m-status').value;
+  const history = claim.history || [];
+  if (!history.includes(newStatus)) history.push(newStatus);
+
+  const updates = {
+    status:   newStatus,
+    price:    document.getElementById('m-price').value,
+    techNote: document.getElementById('m-note').value,
+    history:  history,
+  };
+
+  await updateData(currentEditId, updates);
+
+  // อัป cache ด้วย
+  const idx = adminCache.findIndex(c => c.id === currentEditId);
+  if (idx !== -1) Object.assign(adminCache[idx], updates);
+
+  document.getElementById('admin-modal').classList.remove('open');
+  renderTable(adminCache);
+
+  saveBtn.disabled = false;
+  saveBtn.textContent = '💾 บันทึกและแจ้งลูกค้า';
+
+  // ส่ง Email แจ้งสถานะ
+  const updatedClaim = adminCache.find(c => c.id === currentEditId);
+  if (updatedClaim) {
+    const cfg = loadEjsConfig();
+    const s = STATUS[updatedClaim.status] || STATUS.new;
+    sendEmail(cfg.templateUpdate, {
+      to_email:    updatedClaim.email,
+      to_name:     updatedClaim.name,
+      ticket_id:   updatedClaim.id,
+      device_type: updatedClaim.type,
+      device_brand:updatedClaim.brand,
+      issue:       updatedClaim.issue,
+      date:        updatedClaim.date,
+      status_label:`${s.icon} ${s.label}`,
+      price:       updatedClaim.price ? `฿${Number(updatedClaim.price).toLocaleString()}` : 'ยังไม่ระบุ',
+      tech_note:   updatedClaim.techNote || '-',
+      phone:       updatedClaim.phone,
+    });
+    showToast(`✅ อัปเดต ${currentEditId} — ${isEjsReady() ? 'ส่ง Email แจ้งลูกค้าแล้ว' : 'Email ยังไม่ได้ตั้งค่า'}`);
+  }
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('admin-modal'))
+    document.getElementById('admin-modal').classList.remove('open');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PRINT
+// ══════════════════════════════════════════════════════════════════
+function printTicket() { window.print(); }
+
+// ══════════════════════════════════════════════════════════════════
+//  DELETE
+// ══════════════════════════════════════════════════════════════════
+async function deleteData(ticketId) {
+  if (!GAS_URL) return false;
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete', ticketId }),
+    });
+    const json = await res.json();
+    return json.ok;
+  } catch(e) { return false; }
+}
+
+async function confirmDelete(ticketId) {
+  if (!ticketId) return;
+  const ok = confirm(`⚠️ ยืนยันลบ Ticket: ${ticketId}\nการลบไม่สามารถย้อนกลับได้`);
+  if (!ok) return;
+  const success = await deleteData(ticketId);
+  if (success) {
+    adminCache = adminCache.filter(c => c.id !== ticketId);
+    document.getElementById('admin-modal').classList.remove('open');
+    renderTable(adminCache);
+    showToast(`🗑️ ลบ ${ticketId} แล้ว`);
+  } else {
+    showToast('❌ ลบไม่สำเร็จ กรุณาลองใหม่');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  DELETE
+// ══════════════════════════════════════════════════════════════════
+async function deleteData(ticketId) {
+  if (!GAS_URL) return false;
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete', ticketId }),
+    });
+    const json = await res.json();
+    return json.ok;
+  } catch(e) { return false; }
+}
+
+async function confirmDelete(ticketId) {
+  if (!ticketId) return;
+  const ok = confirm(`⚠️ ยืนยันลบ Ticket: ${ticketId}\nการลบไม่สามารถย้อนกลับได้`);
+  if (!ok) return;
+  const success = await deleteData(ticketId);
+  if (success) {
+    adminCache = adminCache.filter(c => c.id !== ticketId);
+    document.getElementById('admin-modal').classList.remove('open');
+    renderTable(adminCache);
+    showToast(`🗑️ ลบ ${ticketId} แล้ว`);
+  } else {
+    showToast('❌ ลบไม่สำเร็จ กรุณาลองใหม่');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PRINT JOB CARD
+// ══════════════════════════════════════════════════════════════════
+function printJobCard() {
+  const claim = adminCache.find(c => c.id === currentEditId);
+  if (!claim) return;
+  const pMap = { normal:'ปกติ (3-5 วันทำการ)', urgent:'⚡ เร่งด่วน (1-2 วัน)', express:'🚀 Express (ภายในวัน)' };
+  const sMap = { new:'รับแล้ว รอตรวจ', check:'กำลังตรวจสอบ', wait:'รอชิ้นส่วน', fix:'กำลังซ่อม', done:'ซ่อมเสร็จ รอรับ', pickup:'รับคืนแล้ว' };
+  const now = new Date().toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('print-jobcard').style.display = 'block';
+  document.getElementById('print-jobcard').innerHTML = `
+    <div style="font-family:'Sarabun',sans-serif;max-width:600px;margin:0 auto;border:2px solid #1e3a8a;border-radius:12px;overflow:hidden">
+      <div style="background:#1e3a8a;color:white;padding:16px 20px;display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:20px;font-weight:700">🔧 VTECCOMPUTER SERVICE</div><div style="font-size:12px;opacity:.8;margin-top:2px">ใบรับซ่อมอุปกรณ์</div></div>
+        <div style="text-align:right"><div style="font-size:22px;font-weight:700;letter-spacing:2px">${claim.id}</div><div style="font-size:11px;opacity:.8">${claim.date}</div></div>
+      </div>
+      <div style="padding:16px 20px;border-bottom:1px solid #e2e8f0">
+        <div style="font-size:13px;font-weight:700;color:#1e3a8a;margin-bottom:10px">👤 ข้อมูลลูกค้า</div>
+        <table style="width:100%;font-size:13px">
+          <tr><td style="color:#64748b;width:120px;padding:3px 0">ชื่อ</td><td style="font-weight:600">${claim.name}</td></tr>
+          <tr><td style="color:#64748b;padding:3px 0">เบอร์โทร</td><td>${claim.phone}</td></tr>
+          <tr><td style="color:#64748b;padding:3px 0">Email</td><td>${claim.email||'-'}</td></tr>
+          <tr><td style="color:#64748b;padding:3px 0">LINE</td><td>${claim.line||'-'}</td></tr>
+        </table>
+      </div>
+      <div style="padding:16px 20px;border-bottom:1px solid #e2e8f0">
+        <div style="font-size:13px;font-weight:700;color:#1e3a8a;margin-bottom:10px">💻 ข้อมูลอุปกรณ์</div>
+        <table style="width:100%;font-size:13px">
+          <tr><td style="color:#64748b;width:120px;padding:3px 0">ประเภท</td><td>${claim.type}</td></tr>
+          <tr><td style="color:#64748b;padding:3px 0">ยี่ห้อ/รุ่น</td><td style="font-weight:600">${claim.brand}</td></tr>
+          <tr><td style="color:#64748b;padding:3px 0">Serial No.</td><td style="font-family:monospace">${claim.serial||'-'}</td></tr>
+          <tr><td style="color:#64748b;padding:3px 0">อาการ</td><td>${claim.issue}</td></tr>
+          ${claim.note?'<tr><td style="color:#64748b;padding:3px 0">หมายเหตุ</td><td style="color:#ea580c">'+claim.note+'</td></tr>':''}
+        </table>
+      </div>
+      <div style="padding:16px 20px;border-bottom:1px solid #e2e8f0">
+        <div style="font-size:13px;font-weight:700;color:#1e3a8a;margin-bottom:10px">📋 รายละเอียดงาน</div>
+        <table style="width:100%;font-size:13px">
+          <tr><td style="color:#64748b;width:120px;padding:3px 0">ความเร่งด่วน</td><td>${pMap[claim.priority]||claim.priority}</td></tr>
+          <tr><td style="color:#64748b;padding:3px 0">รับอุปกรณ์คืน</td><td>${claim.pickup||'-'}</td></tr>
+          <tr><td style="color:#64748b;padding:3px 0">สถานะ</td><td style="font-weight:600">${sMap[claim.status]||claim.status}</td></tr>
+          ${claim.price?'<tr><td style="color:#64748b;padding:3px 0">ราคา</td><td style="font-weight:700;color:#16a34a">฿'+Number(claim.price).toLocaleString()+'</td></tr>':''}
+          ${claim.techNote?'<tr><td style="color:#64748b;padding:3px 0">หมายเหตุช่าง</td><td>'+claim.techNote+'</td></tr>':''}
+        </table>
+      </div>
+      <div style="padding:16px 20px;display:flex;gap:20px">
+        <div style="flex:1;text-align:center"><div style="border-top:1px solid #94a3b8;margin-top:40px;padding-top:6px;font-size:12px;color:#64748b">ลายเซ็นลูกค้า</div></div>
+        <div style="flex:1;text-align:center"><div style="border-top:1px solid #94a3b8;margin-top:40px;padding-top:6px;font-size:12px;color:#64748b">ลายเซ็นช่าง</div></div>
+      </div>
+      <div style="background:#f8fafc;padding:10px 20px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0">พิมพ์วันที่ ${now} • VTECCOMPUTER SERVICE</div>
+    </div>`;
+  setTimeout(() => { window.print(); setTimeout(() => { document.getElementById('print-jobcard').style.display = 'none'; }, 500); }, 200);
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  EXPORT EXCEL
+// ══════════════════════════════════════════════════════════════════
+function exportExcel() {
+  if (!adminCache || adminCache.length === 0) { showToast('⚠️ ไม่มีข้อมูลสำหรับ Export'); return; }
+
+  const sMap = { new:'รับแล้ว รอตรวจ', check:'กำลังตรวจสอบ', wait:'รอชิ้นส่วน', fix:'กำลังซ่อม', done:'ซ่อมเสร็จ รอรับ', pickup:'รับคืนแล้ว' };
+  const pMap = { normal:'ปกติ', urgent:'⚡ เร่งด่วน', express:'🚀 Express' };
+
+  const wb = XLSX.utils.book_new();
+
+  // ── Header rows ──
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
+  const yearTH = now.getFullYear() + 543;
+
+  // Stats
+  const total = adminCache.length;
+  const done = adminCache.filter(c => c.status === 'done').length;
+  const pickup = adminCache.filter(c => c.status === 'pickup').length;
+  const inprog = total - done - pickup;
+  const revenue = adminCache.reduce((s, c) => s + (Number(c.price) || 0), 0);
+
+  // สร้างข้อมูล
+  const dataRows = adminCache.map(c => ({
+    'Ticket':         c.id,
+    'วันที่รับ':      c.date,
+    'ชื่อลูกค้า':    c.name,
+    'เบอร์โทร':      c.phone,
+    'ประเภท':        c.type,
+    'ยี่ห้อ/รุ่น':   c.brand,
+    'Serial No.':    c.serial || '',
+    'อาการ':         c.issue,
+    'ความเร่งด่วน':  pMap[c.priority] || c.priority || '',
+    'รับอุปกรณ์คืน': c.pickup || '',
+    'หมายเหตุลูกค้า': c.note || '',
+    'สถานะ':         sMap[c.status] || c.status,
+    'ราคา (บาท)':   c.price ? Number(c.price) : '',
+    'หมายเหตุช่าง':  c.techNote || '',
+  }));
+
+  // แถวหัว
+  const aoa = [
+    ['🔧  VTECCOMPUTER SERVICE  —  รายงานงานซ่อมทั้งหมด','','','','','','','','','','','','',''],
+    [`ออกรายงานวันที่ ${dateStr}`,'','','','','','','','','','','','',''],
+    [`📋 ทั้งหมด: ${total} เคส`,`🔧 กำลังดำเนินการ: ${inprog} เคส`,'','',`✅ ซ่อมเสร็จ: ${done} เคส`,'','',`💰 รายได้รวม: ฿${revenue.toLocaleString()}`,'','','','','',''],
+    [],
+    Object.keys(dataRows[0]),
+    ...dataRows.map(r => Object.values(r)),
+    [],
+    [`รวมทั้งหมด ${total} เคส`,'','','','','','','','','','','',`=SUM(M6:M${5+dataRows.length})`,''],
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+  // ── Column widths ──
+  ws['!cols'] = [
+    {wch:14},{wch:18},{wch:22},{wch:14},{wch:12},{wch:18},
+    {wch:18},{wch:28},{wch:14},{wch:16},{wch:20},{wch:18},{wch:12},{wch:22}
+  ];
+
+  // ── Merges ──
+  ws['!merges'] = [
+    {s:{r:0,c:0}, e:{r:0,c:13}},  // หัว
+    {s:{r:1,c:0}, e:{r:1,c:13}},  // วันที่
+    {s:{r:2,c:0}, e:{r:2,c:1}},   // summary 1
+    {s:{r:2,c:2}, e:{r:2,c:3}},
+    {s:{r:2,c:4}, e:{r:2,c:6}},
+    {s:{r:2,c:7}, e:{r:2,c:13}},
+    {s:{r:aoa.length-1,c:0}, e:{r:aoa.length-1,c:11}}, // รวม
+  ];
+
+  // ── Styles (ใช้ SheetJS Pro style หรือ inline style ผ่าน cell comment) ──
+  // SheetJS community ไม่รองรับ style โดยตรง ใช้วิธีเพิ่ม named style ผ่าน workbook props แทน
+  wb.Props = { Title: 'VTECCOMPUTER Repair Report', Author: 'VTECCOMPUTER SERVICE' };
+
+  XLSX.utils.book_append_sheet(wb, ws, 'รายงานซ่อม');
+
+  // สร้างชีต Summary แยก
+  const summaryData = [
+    ['สรุปภาพรวมงานซ่อม',''],
+    ['',''],
+    ['สถานะ', 'จำนวน (เคส)'],
+    ['รับแล้ว รอตรวจ',    adminCache.filter(c=>c.status==='new').length],
+    ['กำลังตรวจสอบ',      adminCache.filter(c=>c.status==='check').length],
+    ['รอชิ้นส่วน',        adminCache.filter(c=>c.status==='wait').length],
+    ['กำลังซ่อม',         adminCache.filter(c=>c.status==='fix').length],
+    ['ซ่อมเสร็จ รอรับ',  adminCache.filter(c=>c.status==='done').length],
+    ['รับคืนแล้ว',        adminCache.filter(c=>c.status==='pickup').length],
+    ['',''],
+    ['รวมทั้งหมด', `=SUM(B4:B9)`],
+    ['',''],
+    ['รายได้รวม (บาท)', revenue],
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(summaryData);
+  ws2['!cols'] = [{wch:22},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'สรุป');
+
+  // ดาวน์โหลด
+  const d = new Date();
+  const fn = 'VTECCOMPUTER_' + (d.getFullYear()+543) + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + '.xlsx';
+  XLSX.writeFile(wb, fn);
+  showToast('✅ Export Excel ' + adminCache.length + ' รายการแล้ว');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PIN LOCK
+// ══════════════════════════════════════════════════════════════════
+let ADMIN_PIN = localStorage.getItem('vtec_admin_pin') || '1234'; // โหลด PIN จาก localStorage
+const PIN_SESSION_KEY = 'vtec_admin_unlocked';
+let pinInput = '';
+
+function isAdminUnlocked() {
+  return sessionStorage.getItem(PIN_SESSION_KEY) === 'yes';
+}
+
+function showPinModal() {
+  pinInput = '';
+  updatePinDots();
+  document.getElementById('pin-error').textContent = '';
+  document.getElementById('pin-overlay').classList.add('open');
+}
+
+function hidePinModal() {
+  document.getElementById('pin-overlay').classList.remove('open');
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('pd' + i).classList.toggle('filled', i < pinInput.length);
+  }
+}
+
+function pinPress(num) {
+  if (pinInput.length >= 4) return;
+  pinInput += num;
+  updatePinDots();
+  document.getElementById('pin-error').textContent = '';
+  if (pinInput.length === 4) {
+    setTimeout(checkPin, 150);
+  }
+}
+
+function pinDelete() {
+  pinInput = pinInput.slice(0, -1);
+  updatePinDots();
+}
+
+function pinClear() {
+  pinInput = '';
+  updatePinDots();
+  document.getElementById('pin-error').textContent = '';
+}
+
+function checkPin() {
+  if (pinInput === ADMIN_PIN) {
+    sessionStorage.setItem(PIN_SESSION_KEY, 'yes');
+    hidePinModal();
+    // ไปหน้า Admin จริงๆ
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('page-admin').classList.add('active');
+    document.querySelectorAll('.nav-tab')[2].classList.add('active');
+    renderAdmin();
+  } else {
+    pinInput = '';
+    updatePinDots();
+    document.getElementById('pin-error').textContent = '❌ PIN ไม่ถูกต้อง กรุณาลองใหม่';
+    // เขย่า pin-box
+    const box = document.querySelector('.pin-box');
+    box.style.animation = 'none';
+    box.offsetHeight;
+    box.style.animation = 'shake .3s ease';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  CHANGE PIN
+// ══════════════════════════════════════════════════════════════════
+function openChangePIN() {
+  document.getElementById('cp-current').value = '';
+  document.getElementById('cp-new').value = '';
+  document.getElementById('cp-confirm').value = '';
+  document.getElementById('cp-error').textContent = '';
+  document.getElementById('change-pin-modal').classList.add('open');
+  setTimeout(() => document.getElementById('cp-current').focus(), 100);
+}
+
+function closeChangePIN() {
+  document.getElementById('change-pin-modal').classList.remove('open');
+}
+
+function savePIN() {
+  const current = document.getElementById('cp-current').value.trim();
+  const newPin  = document.getElementById('cp-new').value.trim();
+  const confirm = document.getElementById('cp-confirm').value.trim();
+  const errEl   = document.getElementById('cp-error');
+
+  if (current !== ADMIN_PIN) {
+    errEl.textContent = '❌ PIN ปัจจุบันไม่ถูกต้อง';
+    return;
+  }
+  if (!/^\d{4}$/.test(newPin)) {
+    errEl.textContent = '❌ PIN ใหม่ต้องเป็นตัวเลข 4 หลัก';
+    return;
+  }
+  if (newPin !== confirm) {
+    errEl.textContent = '❌ PIN ใหม่ไม่ตรงกัน';
+    return;
+  }
+
+  ADMIN_PIN = newPin;
+  localStorage.setItem('vtec_admin_pin', newPin);
+  closeChangePIN();
+  showToast('✅ เปลี่ยน PIN สำเร็จแล้ว');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════════
+initEjs();
+
+document.getElementById('check-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkStatus();
+});
+</script>
+<div id="print-jobcard" style="display:none"></div>
+
+<!-- PIN LOCK MODAL -->
+<div class="pin-overlay" id="pin-overlay">
+  <div class="pin-box">
+    <div class="pin-icon">🔐</div>
+    <div class="pin-title">Admin Access</div>
+    <div class="pin-sub">กรอก PIN 4 หลักเพื่อเข้าสู่หน้า Admin</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pin-btn" onclick="pinPress('1')">1</button>
+      <button class="pin-btn" onclick="pinPress('2')">2</button>
+      <button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button>
+      <button class="pin-btn" onclick="pinPress('5')">5</button>
+      <button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button>
+      <button class="pin-btn" onclick="pinPress('8')">8</button>
+      <button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn clr" onclick="pinClear()">ล้าง</button>
+      <button class="pin-btn" onclick="pinPress('0')">0</button>
+      <button class="pin-btn del" onclick="pinDelete()">⌫</button>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+  </div>
+</div>
+
+
+<!-- CHANGE PIN MODAL -->
+<div class="modal-overlay" id="change-pin-modal" onclick="if(event.target===this)closeChangePIN()">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header">
+      <div class="modal-title">🔑 เปลี่ยน PIN</div>
+      <button class="modal-close" onclick="closeChangePIN()">✕</button>
+    </div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+      <div class="form-group">
+        <label style="font-size:13px;font-weight:600;color:var(--text2)">PIN ปัจจุบัน</label>
+        <input type="password" id="cp-current" maxlength="4" inputmode="numeric" pattern="[0-9]*"
+          placeholder="กรอก PIN ปัจจุบัน 4 หลัก"
+          style="font-size:20px;letter-spacing:8px;text-align:center;font-family:var(--mono)">
+      </div>
+      <div class="form-group">
+        <label style="font-size:13px;font-weight:600;color:var(--text2)">PIN ใหม่</label>
+        <input type="password" id="cp-new" maxlength="4" inputmode="numeric" pattern="[0-9]*"
+          placeholder="PIN ใหม่ 4 หลัก"
+          style="font-size:20px;letter-spacing:8px;text-align:center;font-family:var(--mono)">
+      </div>
+      <div class="form-group">
+        <label style="font-size:13px;font-weight:600;color:var(--text2)">ยืนยัน PIN ใหม่</label>
+        <input type="password" id="cp-confirm" maxlength="4" inputmode="numeric" pattern="[0-9]*"
+          placeholder="ยืนยัน PIN ใหม่"
+          style="font-size:20px;letter-spacing:8px;text-align:center;font-family:var(--mono)">
+      </div>
+      <div id="cp-error" style="color:var(--red);font-size:13px;min-height:18px;text-align:center"></div>
+      <button class="btn btn-primary btn-full" onclick="savePIN()">💾 บันทึก PIN ใหม่</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

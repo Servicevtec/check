@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VTECCOMPUTER SERVICE CHECK</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f7fa; --surf:#fff; --surf2:#f0f4f8;
+  --border:#e2e8f0; --border2:#cbd5e1;
+  --text:#1a2332; --text2:#4a5568; --text3:#94a3b8;
+  --blue:#2563eb; --blue-l:#dbeafe; --blue-d:#1d4ed8;
+  --green:#16a34a; --green-l:#dcfce7;
+  --orange:#ea580c; --orange-l:#ffedd5;
+  --red:#dc2626; --red-l:#fee2e2;
+  --purple:#7c3aed; --purple-l:#ede9fe;
+  --yellow:#ca8a04; --yellow-l:#fef9c3;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'Sarabun',sans-serif;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.06);
+  --shadow-lg:0 10px 15px rgba(0,0,0,.08),0 4px 6px rgba(0,0,0,.05);
+  --radius:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh;}
+
+/* ── HEADER ── */
+.header{
+  background:linear-gradient(135deg,#1d4ed8,#2563eb);
+  padding:32px 20px 80px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.header::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 30% 50%,rgba(255,255,255,.08),transparent 60%),
+             radial-gradient(circle at 80% 20%,rgba(255,255,255,.06),transparent 50%);
+}
+.header-icon{
+  width:64px;height:64px;border-radius:18px;
+  background:rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;margin:0 auto 14px;
+  backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.25);
+}
+.header-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:4px;}
+.header-sub{font-size:14px;color:rgba(255,255,255,.75);}
+
+/* ── MAIN ── */
+.main{
+  max-width:560px;margin:0 auto;
+  padding:0 16px 48px;
+  margin-top:-48px;
+  position:relative;z-index:1;
+}
+
+/* ── CARD ── */
+.card{
+  background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--radius);padding:24px;
+  box-shadow:var(--shadow-md);margin-bottom:16px;
+}
+
+/* ── SEARCH ── */
+.search-card{
+  background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--radius);padding:24px;
+  box-shadow:var(--shadow-lg);margin-bottom:20px;
+}
+.search-title{font-size:16px;font-weight:700;margin-bottom:4px;}
+.search-sub{font-size:13px;color:var(--text3);margin-bottom:16px;}
+.search-row{display:flex;gap:10px;}
+.search-input{
+  flex:1;padding:12px 16px;
+  border:1.5px solid var(--border);border-radius:9px;
+  font-family:var(--mono);font-size:16px;letter-spacing:2px;
+  color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.search-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+.search-input::placeholder{font-family:var(--sans);letter-spacing:0;font-size:14px;color:var(--text3);}
+.btn-search{
+  padding:12px 20px;border-radius:9px;border:none;
+  background:var(--blue);color:#fff;
+  font-family:var(--sans);font-size:14px;font-weight:600;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.btn-search:hover{background:var(--blue-d);box-shadow:0 4px 12px rgba(37,99,235,.3);}
+
+/* ── STATUS RESULT ── */
+.result{display:none;animation:fadeUp .3s ease;}
+.result.show{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── TICKET HEADER ── */
+.ticket-header{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;
+  padding:18px 20px;
+  background:var(--surf2);
+  border-radius:var(--radius) var(--radius) 0 0;
+  border:1px solid var(--border);
+  border-bottom:none;
+}
+.ticket-id-label{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.ticket-id-val{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--blue);}
+.ticket-body{
+  border:1px solid var(--border);
+  border-radius:0 0 var(--radius) var(--radius);
+  overflow:hidden;
+  margin-bottom:16px;
+}
+
+/* ── INFO ROWS ── */
+.info-section{padding:20px;}
+.info-row{
+  display:flex;gap:10px;padding:8px 0;
+  border-bottom:1px solid var(--border);font-size:14px;
+}
+.info-row:last-child{border-bottom:none;}
+.info-icon{width:28px;flex-shrink:0;text-align:center;font-size:16px;}
+.info-label{color:var(--text3);width:100px;flex-shrink:0;padding-top:1px;}
+.info-val{color:var(--text);font-weight:500;flex:1;}
+
+/* ── BADGE ── */
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:20px;
+  font-size:13px;font-weight:600;white-space:nowrap;
+}
+.badge-dot{width:7px;height:7px;border-radius:50%;}
+.badge-new{background:var(--blue-l);color:var(--blue);}
+.badge-new .badge-dot{background:var(--blue);}
+.badge-check{background:var(--yellow-l);color:var(--yellow);}
+.badge-check .badge-dot{background:var(--yellow);}
+.badge-wait{background:var(--orange-l);color:var(--orange);}
+.badge-wait .badge-dot{background:var(--orange);}
+.badge-fix{background:var(--purple-l);color:var(--purple);}
+.badge-fix .badge-dot{background:var(--purple);}
+.badge-done{background:var(--green-l);color:var(--green);}
+.badge-done .badge-dot{background:var(--green);}
+.badge-pickup{background:#f1f5f9;color:var(--text2);}
+.badge-pickup .badge-dot{background:var(--text3);}
+
+/* ── PROGRESS BAR ── */
+.progress-section{
+  padding:20px;background:var(--surf);
+  border-top:1px solid var(--border);
+}
+.progress-title{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:16px;letter-spacing:.5px;}
+.progress-steps{display:flex;gap:0;position:relative;}
+.progress-steps::before{
+  content:'';position:absolute;
+  top:14px;left:28px;right:28px;height:2px;
+  background:var(--border);z-index:0;
+}
+.progress-fill{
+  position:absolute;top:14px;left:28px;height:2px;
+  background:var(--blue);z-index:1;
+  transition:width .8s ease;
+}
+.step{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  position:relative;z-index:2;
+}
+.step-dot{
+  width:28px;height:28px;border-radius:50%;
+  border:2px solid var(--border);background:var(--surf);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;transition:all .3s;margin-bottom:6px;
+}
+.step.done .step-dot{border-color:var(--green);background:var(--green-l);}
+.step.active .step-dot{border-color:var(--blue);background:var(--blue);color:#fff;box-shadow:0 0 0 4px rgba(37,99,235,.15);}
+.step.skip .step-dot{border-color:var(--orange);background:var(--orange-l);}
+.step-label{font-size:9px;color:var(--text3);text-align:center;line-height:1.3;max-width:52px;}
+.step.done .step-label{color:var(--green);}
+.step.active .step-label{color:var(--blue);font-weight:600;}
+
+/* ── TIMELINE ── */
+.timeline-section{padding:20px;border-top:1px solid var(--border);}
+.timeline-title{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:14px;letter-spacing:.5px;}
+.tl-item{display:flex;gap:12px;padding-bottom:14px;position:relative;}
+.tl-item:last-child{padding-bottom:0;}
+.tl-item::before{content:'';position:absolute;left:13px;top:26px;bottom:0;width:2px;background:var(--border);}
+.tl-item:last-child::before{display:none;}
+.tl-dot{
+  width:28px;height:28px;border-radius:50%;
+  border:2px solid var(--border);background:var(--surf);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;z-index:1;
+}
+.tl-dot.done{border-color:var(--green);background:var(--green-l);}
+.tl-dot.active{border-color:var(--blue);background:var(--blue-l);}
+.tl-content{padding-top:3px;}
+.tl-title{font-size:14px;font-weight:600;}
+.tl-title.active{color:var(--blue);}
+.tl-title.done{color:var(--green);}
+.tl-title.pending{color:var(--text3);}
+.tl-sub{font-size:12px;color:var(--text3);margin-top:1px;}
+
+/* ── PRICE BOX ── */
+.price-box{
+  background:linear-gradient(135deg,var(--green-l),#f0fdf4);
+  border:1.5px solid #86efac;
+  border-radius:var(--radius);padding:16px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;
+}
+.price-label{font-size:13px;color:var(--green);font-weight:600;}
+.price-val{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--green);}
+
+/* ── TECH NOTE ── */
+.tech-note{
+  background:var(--blue-l);border:1px solid #bfdbfe;
+  border-radius:var(--radius);padding:14px 16px;
+  font-size:14px;color:#1e40af;margin-bottom:16px;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.tech-note-icon{font-size:18px;flex-shrink:0;}
+
+/* ── RECEIPT ── */
+.receipt{
+  background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--radius);padding:24px;
+  margin-bottom:16px;
+}
+.receipt-header{text-align:center;border-bottom:2px dashed var(--border2);padding-bottom:16px;margin-bottom:16px;}
+.receipt-shop{font-size:18px;font-weight:700;}
+.receipt-sub{font-size:13px;color:var(--text3);}
+.receipt-row{display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px;color:var(--text2);}
+.receipt-total{border-top:2px solid var(--text);padding-top:10px;margin-top:8px;display:flex;justify-content:space-between;font-weight:700;font-size:16px;}
+
+/* ── ACTIONS ── */
+.actions{display:flex;gap:10px;flex-wrap:wrap;}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:10px 18px;border-radius:9px;border:none;
+  font-family:var(--sans);font-size:14px;font-weight:600;
+  cursor:pointer;transition:all .15s;
+}
+.btn-outline{background:var(--surf);color:var(--text);border:1.5px solid var(--border);}
+.btn-outline:hover{border-color:var(--border2);background:var(--surf2);}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-primary:hover{background:var(--blue-d);}
+
+/* ── NOT FOUND ── */
+.not-found{
+  text-align:center;padding:40px 20px;
+}
+.not-found-icon{font-size:48px;margin-bottom:12px;}
+.not-found-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.not-found-sub{font-size:14px;color:var(--text3);}
+
+/* ── EMPTY STATE ── */
+.empty-state{
+  text-align:center;padding:48px 20px;
+  background:var(--surf);border-radius:var(--radius);
+  border:1px dashed var(--border2);
+}
+.empty-icon{font-size:48px;margin-bottom:14px;}
+.empty-title{font-size:16px;font-weight:600;color:var(--text2);margin-bottom:6px;}
+.empty-sub{font-size:14px;color:var(--text3);}
+
+/* ── HINT ── */
+.hint-row{
+  display:flex;gap:10px;align-items:center;
+  background:var(--surf2);border:1px solid var(--border);
+  border-radius:9px;padding:12px 14px;
+  margin-bottom:16px;font-size:13px;color:var(--text2);
+}
+.hint-icon{font-size:20px;flex-shrink:0;}
+
+/* ── FOOTER ── */
+.footer{
+  text-align:center;padding:24px 16px;
+  font-size:12px;color:var(--text3);
+  border-top:1px solid var(--border);
+  margin-top:8px;
+}
+
+/* ── SHARE NOTE ── */
+.share-note{
+  background:linear-gradient(135deg,#fffbeb,#fef9c3);
+  border:1px solid #fde68a;border-radius:var(--radius);
+  padding:14px 16px;margin-bottom:20px;
+  font-size:13px;color:#92400e;
+  display:flex;gap:10px;align-items:flex-start;
+}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:#1a2332;color:#fff;padding:12px 20px;border-radius:10px;
+  font-size:14px;font-weight:500;box-shadow:var(--shadow-lg);
+  opacity:0;transition:all .3s ease;z-index:300;white-space:nowrap;
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+@media(max-width:480px){
+  .search-row{flex-direction:column;}
+  .btn-search{width:100%;justify-content:center;}
+  .step-label{font-size:8px;max-width:44px;}
+  .ticket-header{flex-direction:column;}
+}
+@media print{
+  .header,.search-card,.hint-row,.share-note,.actions,.footer{display:none!important;}
+  .main{margin-top:0;}
+  body{background:#fff;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-icon">🔍</div>
+  <div class="header-title">VTECCOMPUTER SERVICE CHECK</div>
+  <div class="header-sub">ติดตามสถานะงานซ่อม</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SEARCH CARD -->
+  <div class="search-card">
+    <div class="search-title">🎫 กรอกเลข Ticket</div>
+    <div class="search-sub">ได้รับเลข Ticket ทาง Email หลังแจ้งซ่อมแล้วครับ</div>
+    <div class="search-row">
+      <input type="text" class="search-input" id="ticket-input"
+             placeholder="เช่น 69-000001"
+             oninput="this.value=this.value.toUpperCase()"
+             onkeydown="if(event.key==='Enter') doSearch()">
+      <button class="btn-search" onclick="doSearch()">ค้นหา 🔍</button>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--text3)">
+      หรือกรอก <strong>เบอร์โทรศัพท์</strong> ที่ลงทะเบียนไว้ก็ได้ครับ
+    </div>
+  </div>
+
+  <!-- HINT -->
+  <div class="hint-row">
+    <span class="hint-icon">💡</span>
+    <span>ถ้าไม่มีเลข Ticket ติดต่อร้านโดยตรงได้เลยครับ</span>
+  </div>
+
+  <!-- RESULT AREA -->
+  <div id="result-area"></div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    ระบบติดตามงานซ่อม · เปิด 24 ชั่วโมง<br>
+    มีปัญหาติดต่อร้านได้เลยครับ
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATUS CONFIG ─────────────────────────────────────────────────────────
+const STATUS = {
+  new:    { label:'รับแล้ว — รอตรวจ',        cls:'badge-new',    icon:'📥', step:0 },
+  check:  { label:'กำลังตรวจสอบ',            cls:'badge-check',  icon:'🔍', step:1 },
+  wait:   { label:'รอชิ้นส่วน / อะไหล่',     cls:'badge-wait',   icon:'⏳', step:2 },
+  fix:    { label:'กำลังดำเนินการซ่อม',      cls:'badge-fix',    icon:'🔧', step:3 },
+  done:   { label:'ซ่อมเสร็จแล้ว — รอรับ',  cls:'badge-done',   icon:'✅', step:4 },
+  pickup: { label:'รับอุปกรณ์คืนแล้ว',       cls:'badge-pickup', icon:'📦', step:5 },
+};
+
+const STEPS = [
+  { key:'new',    icon:'📥', short:'รับแล้ว' },
+  { key:'check',  icon:'🔍', short:'ตรวจสอบ' },
+  { key:'fix',    icon:'🔧', short:'ซ่อม' },
+  { key:'done',   icon:'✅', short:'เสร็จแล้ว' },
+  { key:'pickup', icon:'📦', short:'รับกลับ' },
+];
+
+const TL_STEPS = [
+  { key:'new',    icon:'📥', label:'รับอุปกรณ์แล้ว',           sub:'ร้านได้รับอุปกรณ์ของคุณแล้ว' },
+  { key:'check',  icon:'🔍', label:'กำลังตรวจสอบอาการ',        sub:'ช่างกำลังตรวจหาสาเหตุ' },
+  { key:'wait',   icon:'⏳', label:'รอชิ้นส่วน / อะไหล่',      sub:'กำลังจัดหาอะไหล่ที่ต้องการ' },
+  { key:'fix',    icon:'🔧', label:'กำลังดำเนินการซ่อม',       sub:'ช่างกำลังซ่อมอุปกรณ์' },
+  { key:'done',   icon:'✅', label:'ซ่อมเสร็จแล้ว — รอรับ',   sub:'สามารถมารับอุปกรณ์ได้แล้ว' },
+  { key:'pickup', icon:'📦', label:'ลูกค้ารับอุปกรณ์คืนแล้ว', sub:'งานเสร็จสมบูรณ์ ขอบคุณที่ใช้บริการ' },
+];
+
+// ── LOAD DATA ─────────────────────────────────────────────────────────────
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyrrGpCmuJgSOCFtz6imfQNTTMcG6m_v5sn-e_70eq0Ubs6NIIfl3607WKu3gZ6gUO5/exec';
+
+async function getOneData(id, phone) {
+  try {
+    let url = GAS_URL + '?action=getOne';
+    if (id)    url += '&id='    + encodeURIComponent(id);
+    if (phone) url += '&phone=' + encodeURIComponent(phone);
+    const res  = await fetch(url);
+    const json = await res.json();
+    return json.ok ? json.data : null;
+  } catch(e) { return null; }
+}
+
+// ── SEARCH ────────────────────────────────────────────────────────────────
+async function doSearch() {
+  const raw = document.getElementById('ticket-input').value.trim();
+  if (!raw) { showToast('⚠️ กรุณากรอกเลข Ticket'); return; }
+
+  const area = document.getElementById('result-area');
+  area.innerHTML = '<div style="text-align:center;padding:32px;color:#64748b">⏳ กำลังค้นหา...</div>';
+
+  const isTicket = /^\d{2}-/.test(raw);
+  const claim = await getOneData(
+    isTicket ? raw.toUpperCase() : null,
+    isTicket ? null : raw
+  );
+
+  if (!claim) {
+    area.innerHTML = `
+      <div class="card not-found">
+        <div class="not-found-icon">🔎</div>
+        <div class="not-found-title">ไม่พบข้อมูล Ticket นี้</div>
+        <div class="not-found-sub">กรุณาตรวจสอบเลข Ticket อีกครั้ง<br>หรือติดต่อร้านโดยตรงครับ</div>
+      </div>`;
+    return;
+  }
+
+  area.innerHTML = buildResult(claim);
+  area.querySelector('.result').classList.add('show');
+
+  // Animate progress bar
+  setTimeout(() => {
+    const fill = document.getElementById('progress-fill');
+    if (fill) fill.style.width = fill.dataset.w;
+  }, 100);
+}
+
+// ── BUILD RESULT ──────────────────────────────────────────────────────────
+function buildResult(c) {
+  const s = STATUS[c.status] || STATUS.new;
+  const history = new Set(c.history || [c.status]);
+
+  // Progress bar width
+  const mainSteps = ['new','check','fix','done','pickup'];
+  const currentMainStep = mainSteps.indexOf(
+    c.status === 'wait' ? 'check' : c.status
+  );
+  const progPct = Math.max(0, Math.min(100,
+    (currentMainStep / (mainSteps.length - 1)) * 100
+  ));
+
+  // Steps HTML
+  const stepsHTML = STEPS.map((step, i) => {
+    const isDone = mainSteps.indexOf(step.key) < mainSteps.indexOf(c.status === 'wait' ? 'check' : c.status)
+                   || step.key === c.status;
+    const isActive = step.key === c.status || (c.status === 'wait' && step.key === 'check');
+    const cls = isActive ? 'active' : isDone ? 'done' : '';
+    return `<div class="step ${cls}">
+      <div class="step-dot">${step.icon}</div>
+      <div class="step-label">${step.short}</div>
+    </div>`;
+  }).join('');
+
+  // Timeline HTML
+  const tlHTML = TL_STEPS.map(step => {
+    const isDone = history.has(step.key) && step.key !== c.status;
+    const isActive = step.key === c.status;
+    const cls = isActive ? 'active' : isDone ? 'done' : 'pending';
+    const dotCls = isActive ? 'active' : isDone ? 'done' : '';
+    return `<div class="tl-item">
+      <div class="tl-dot ${dotCls}">${step.icon}</div>
+      <div class="tl-content">
+        <div class="tl-title ${cls}">${step.label}</div>
+        <div class="tl-sub">${isActive ? '⬅️ สถานะปัจจุบัน' : isDone ? '✔ ผ่านแล้ว' : 'รอดำเนินการ'}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Price box
+  const priceHTML = c.price ? `
+    <div class="price-box">
+      <div>
+        <div class="price-label">💰 ค่าซ่อม</div>
+        <div style="font-size:12px;color:var(--green);opacity:.7;margin-top:2px">ชำระเมื่อรับอุปกรณ์คืน</div>
+      </div>
+      <div class="price-val">฿${Number(c.price).toLocaleString()}</div>
+    </div>` : '';
+
+  // Tech note
+  const techHTML = c.techNote ? `
+    <div class="tech-note">
+      <span class="tech-note-icon">🛠️</span>
+      <div><strong>หมายเหตุจากช่าง:</strong> ${c.techNote}</div>
+    </div>` : '';
+
+  // Receipt (เฉพาะเสร็จแล้ว)
+  const receiptHTML = (c.status === 'done' || c.status === 'pickup') ? `
+    <div class="receipt" id="receipt-box">
+      <div class="receipt-header">
+        <div class="receipt-shop">🔧 ใบเสร็จรับเงิน</div>
+        <div class="receipt-sub">ร้านซ่อมคอมพิวเตอร์</div>
+      </div>
+      <div class="receipt-row"><span>เลข Ticket</span><span style="font-family:var(--mono)">${c.id}</span></div>
+      <div class="receipt-row"><span>ชื่อลูกค้า</span><span>${c.name}</span></div>
+      <div class="receipt-row"><span>อุปกรณ์</span><span>${c.brand}</span></div>
+      <div class="receipt-row"><span>รายการซ่อม</span><span>${c.issue}</span></div>
+      <div class="receipt-row"><span>วันที่รับแจ้ง</span><span>${c.date}</span></div>
+      <div class="receipt-total"><span>รวมทั้งสิ้น</span><span style="color:var(--green)">${c.price ? '฿'+Number(c.price).toLocaleString() : 'ยังไม่ระบุ'}</span></div>
+      <div style="margin-top:14px">
+        <button class="btn btn-outline" onclick="window.print()">🖨️ พิมพ์ใบเสร็จ</button>
+      </div>
+    </div>` : '';
+
+  // Priority badge
+  const priorityMap = { normal:'ปกติ', urgent:'⚡ เร่งด่วน', express:'🚀 Express' };
+  const priorityStr = priorityMap[c.priority] || c.priority || 'ปกติ';
+
+  return `<div class="result">
+    <!-- Ticket Header -->
+    <div class="ticket-header">
+      <div>
+        <div class="ticket-id-label">หมายเลข Ticket</div>
+        <div class="ticket-id-val">${c.id}</div>
+      </div>
+      <span class="badge ${s.cls}"><span class="badge-dot"></span>${s.label}</span>
+    </div>
+
+    <div class="ticket-body">
+      <!-- Info -->
+      <div class="info-section">
+        <div class="info-row">
+          <span class="info-icon">👤</span>
+          <span class="info-label">ชื่อลูกค้า</span>
+          <span class="info-val">${c.name}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-icon">💻</span>
+          <span class="info-label">อุปกรณ์</span>
+          <span class="info-val">${c.type} — ${c.brand}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-icon">🔩</span>
+          <span class="info-label">อาการ</span>
+          <span class="info-val">${c.issue}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-icon">📅</span>
+          <span class="info-label">วันที่รับแจ้ง</span>
+          <span class="info-val">${c.date}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-icon">⚡</span>
+          <span class="info-label">ความเร่งด่วน</span>
+          <span class="info-val">${priorityStr}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-icon">📦</span>
+          <span class="info-label">รับอุปกรณ์</span>
+          <span class="info-val">${c.pickup}</span>
+        </div>
+      </div>
+
+      <!-- Progress Steps -->
+      <div class="progress-section">
+        <div class="progress-title">ความคืบหน้า</div>
+        <div class="progress-steps">
+          <div class="progress-fill" id="progress-fill"
+               style="width:0%" data-w="${progPct}%"></div>
+          ${stepsHTML}
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="timeline-section">
+        <div class="timeline-title">ประวัติสถานะ</div>
+        ${tlHTML}
+      </div>
+    </div>
+
+    <!-- Price & Notes -->
+    ${priceHTML}
+    ${techHTML}
+    ${receiptHTML}
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn btn-outline" onclick="shareStatus()">🔗 แชร์ลิงก์</button>
+      <button class="btn btn-outline" onclick="doSearch()">🔄 รีเฟรช</button>
+    </div>
+  </div>`;
+}
+
+// ── SHARE ─────────────────────────────────────────────────────────────────
+function shareStatus() {
+  const ticket = document.getElementById('ticket-input').value.trim();
+  if (!ticket) return;
+  const url = `${window.location.href.split('?')[0]}?ticket=${encodeURIComponent(ticket)}`;
+  if (navigator.share) {
+    navigator.share({ title:'เช็คสถานะซ่อม', url });
+  } else {
+    navigator.clipboard.writeText(url).then(() => showToast('✅ คัดลอกลิงก์แล้ว'));
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── AUTO SEARCH FROM URL ──────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  const ticket = params.get('ticket');
+  if (ticket) {
+    document.getElementById('ticket-input').value = ticket.toUpperCase();
+    doSearch();
+  }
+});
+</script>
+</body>
+</html>
